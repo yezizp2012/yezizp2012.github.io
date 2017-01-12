@@ -1,0 +1,791 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="redis,笔记,源码,链表," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="Redis用C实现了链表，应用场景包括list（元素很多或包含元素都是较长字符串时），发布和订阅，慢查询，监视器等，另外客户端状态信息，客户端输出缓冲区都是用链表来保存。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Redis设计与实现笔记-章3.链表">
+<meta property="og:url" content="https://yezizp2012.github.io/2017/01/06/Redis设计与实现笔记-章3-链表/index.html">
+<meta property="og:site_name" content="August's Box">
+<meta property="og:description" content="Redis用C实现了链表，应用场景包括list（元素很多或包含元素都是较长字符串时），发布和订阅，慢查询，监视器等，另外客户端状态信息，客户端输出缓冲区都是用链表来保存。">
+<meta property="og:updated_time" content="2017-01-06T08:27:16.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Redis设计与实现笔记-章3.链表">
+<meta name="twitter:description" content="Redis用C实现了链表，应用场景包括list（元素很多或包含元素都是较长字符串时），发布和订阅，慢查询，监视器等，另外客户端状态信息，客户端输出缓冲区都是用链表来保存。">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '6371266536736294000',
+      author: 'August'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://yezizp2012.github.io/2017/01/06/Redis设计与实现笔记-章3-链表/"/>
+
+
+
+
+
+  <title> Redis设计与实现笔记-章3.链表 | August's Box </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?f03d3f15b3476b44d4144b881859b05a";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">August's Box</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+    
+      <p class="site-subtitle"></p>
+    
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+  <link itemprop="mainEntityOfPage" href="https://yezizp2012.github.io/2017/01/06/Redis设计与实现笔记-章3-链表/">
+
+  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="August">
+    <meta itemprop="description" content="">
+    <meta itemprop="image" content="/images/avatar.gif">
+  </span>
+
+  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <meta itemprop="name" content="August's Box">
+    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+      <img style="display:none;" itemprop="url image" alt="August's Box" src="">
+    </span>
+  </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Redis设计与实现笔记-章3.链表
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-01-06T14:35:09+08:00">
+                2017-01-06
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Redis设计与实现笔记/" itemprop="url" rel="index">
+                    <span itemprop="name">Redis设计与实现笔记</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2017/01/06/Redis设计与实现笔记-章3-链表/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2017/01/06/Redis设计与实现笔记-章3-链表/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>Redis用C实现了链表，应用场景包括list（元素很多或包含元素都是较长字符串时），发布和订阅，慢查询，监视器等，另外客户端状态信息，客户端输出缓冲区都是用链表来保存。</p>
+<a id="more"></a>
+<h3 id="链表的定义"><a href="#链表的定义" class="headerlink" title="链表的定义"></a>链表的定义</h3><figure class="highlight c"><figcaption><span>adlist.h/listNode,list</span><a href="https://github.com/huangz1990/redis-3.0-annotated/blob/unstable/src/adlist.h" target="_blank" rel="external">link</a></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> listNode &#123;</div><div class="line">    <span class="keyword">struct</span> listNode *prev;<span class="comment">//前一个节点</span></div><div class="line">    <span class="keyword">struct</span> listNode *next;<span class="comment">//后一个节点</span></div><div class="line">    <span class="keyword">void</span> *value;</div><div class="line">&#125; listNode;</div><div class="line"></div><div class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> listIter &#123;</div><div class="line">    <span class="comment">// 当前迭代到的节点</span></div><div class="line">    listNode *next;</div><div class="line">    <span class="comment">// 迭代的方向</span></div><div class="line">    <span class="keyword">int</span> direction;</div><div class="line">&#125; listIter; <span class="comment">//链表迭代器</span></div><div class="line"></div><div class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> <span class="built_in">list</span> &#123;</div><div class="line">    listNode *head;<span class="comment">//头节点</span></div><div class="line">    listNode *tail;<span class="comment">//尾节点</span></div><div class="line">    <span class="keyword">void</span> *(*dup)(<span class="keyword">void</span> *ptr);<span class="comment">// 节点值复制函数</span></div><div class="line">    <span class="keyword">void</span> (*<span class="built_in">free</span>)(<span class="keyword">void</span> *ptr);<span class="comment">// 节点值释放函数</span></div><div class="line">    <span class="keyword">int</span> (*match)(<span class="keyword">void</span> *ptr, <span class="keyword">void</span> *key);<span class="comment">// 节点值对比函数</span></div><div class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> len;<span class="comment">// 链表所包含的节点数量</span></div><div class="line">&#125; <span class="built_in">list</span>;</div></pre></td></tr></table></figure>
+<p>从实现上来看，Redis实现了一个双端链表，并保存了列表的长度和头尾节点指针。另外，节点的value类型为void*，加上提供<code>listSetDupMethod</code>，<code>listSetFreeMethod</code>，<code>listSetMatchMethod</code>接口实现保存不同类型的值（多态）。</p>
+<h3 id="API和宏定义"><a href="#API和宏定义" class="headerlink" title="API和宏定义"></a>API和宏定义</h3><p>针对双端链表的API，包含链表基本操作和链表迭代相关的接口<br><figure class="highlight c"><figcaption><span>adlist.h/api</span><a href="https://github.com/huangz1990/redis-3.0-annotated/blob/unstable/src/adlist.c" target="_blank" rel="external">link</a></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="built_in">list</span> *<span class="title">listCreate</span><span class="params">(<span class="keyword">void</span>)</span></span>;<span class="comment">//创建链表</span></div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">listRelease</span><span class="params">(<span class="built_in">list</span> *<span class="built_in">list</span>)</span></span>;<span class="comment">//释放链表</span></div><div class="line"><span class="function"><span class="built_in">list</span> *<span class="title">listAddNodeHead</span><span class="params">(<span class="built_in">list</span> *<span class="built_in">list</span>, <span class="keyword">void</span> *value)</span></span>;<span class="comment">//添加到head</span></div><div class="line"><span class="function"><span class="built_in">list</span> *<span class="title">listAddNodeTail</span><span class="params">(<span class="built_in">list</span> *<span class="built_in">list</span>, <span class="keyword">void</span> *value)</span></span>;<span class="comment">//添加到tail</span></div><div class="line"><span class="function"><span class="built_in">list</span> *<span class="title">listInsertNode</span><span class="params">(<span class="built_in">list</span> *<span class="built_in">list</span>, listNode *old_node, <span class="keyword">void</span> *value, <span class="keyword">int</span> after)</span></span>;<span class="comment">//插入节点，after为0插入到之前，1为之后</span></div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">listDelNode</span><span class="params">(<span class="built_in">list</span> *<span class="built_in">list</span>, listNode *node)</span></span>;<span class="comment">//删除节点</span></div><div class="line"><span class="function">listIter *<span class="title">listGetIterator</span><span class="params">(<span class="built_in">list</span> *<span class="built_in">list</span>, <span class="keyword">int</span> direction)</span></span>;<span class="comment">//创建迭代器，direction:AL_START_HEAD, AL_START_TAIL</span></div><div class="line"><span class="function">listNode *<span class="title">listNext</span><span class="params">(listIter *iter)</span></span>;<span class="comment">//获取下一个节点</span></div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">listReleaseIterator</span><span class="params">(listIter *iter)</span></span>;<span class="comment">//释放迭代器</span></div><div class="line"><span class="function"><span class="built_in">list</span> *<span class="title">listDup</span><span class="params">(<span class="built_in">list</span> *orig)</span></span>;<span class="comment">//复制链表</span></div><div class="line"><span class="function">listNode *<span class="title">listSearchKey</span><span class="params">(<span class="built_in">list</span> *<span class="built_in">list</span>, <span class="keyword">void</span> *key)</span></span>;<span class="comment">//查找key，通过match查找，未设置按照key == value</span></div><div class="line"><span class="function">listNode *<span class="title">listIndex</span><span class="params">(<span class="built_in">list</span> *<span class="built_in">list</span>, <span class="keyword">long</span> index)</span></span>;<span class="comment">//返回index位置的节点</span></div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">listRewind</span><span class="params">(<span class="built_in">list</span> *<span class="built_in">list</span>, listIter *li)</span></span>;<span class="comment">//设置迭代器方向为AL_START_HEAD</span></div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">listRewindTail</span><span class="params">(<span class="built_in">list</span> *<span class="built_in">list</span>, listIter *li)</span></span>;<span class="comment">//设置迭代器方向为AL_START_TAIL</span></div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">listRotate</span><span class="params">(<span class="built_in">list</span> *<span class="built_in">list</span>)</span></span>;<span class="comment">//取tail节点放置到头部，仅在处理客户端时使用（clientsCron）</span></div></pre></td></tr></table></figure><br>方便链表操作的宏定义<br><figure class="highlight c"><figcaption><span>adlist.h/#define</span><a href="https://github.com/huangz1990/redis-3.0-annotated/blob/unstable/src/adlist.h" target="_blank" rel="external">link</a></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#<span class="meta-keyword">define</span> listLength(l) ((l)-&gt;len)</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> listFirst(l) ((l)-&gt;head)</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> listLast(l) ((l)-&gt;tail)</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> listPrevNode(n) ((n)-&gt;prev)</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> listNextNode(n) ((n)-&gt;next)</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> listNodeValue(n) ((n)-&gt;value)</span></div><div class="line"></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> listSetDupMethod(l,m) ((l)-&gt;dup = (m))</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> listSetFreeMethod(l,m) ((l)-&gt;free = (m))</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> listSetMatchMethod(l,m) ((l)-&gt;match = (m))</span></div><div class="line"></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> listGetDupMethod(l) ((l)-&gt;dup)</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> listGetFree(l) ((l)-&gt;free)</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> listGetMatchMethod(l) ((l)-&gt;match)</span></div></pre></td></tr></table></figure></p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>总的来说，链表实现比较简单，提供了一些针对链表典型的基本操作（增删改查等）的API和宏。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/redis/" rel="tag"># redis</a>
+          
+            <a href="/tags/笔记/" rel="tag"># 笔记</a>
+          
+            <a href="/tags/源码/" rel="tag"># 源码</a>
+          
+            <a href="/tags/链表/" rel="tag"># 链表</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/01/05/Redis设计与实现笔记-章2-简单动态字符串/" rel="next" title="Redis设计与实现笔记-章2.简单动态字符串">
+                <i class="fa fa-chevron-left"></i> Redis设计与实现笔记-章2.简单动态字符串
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/01/09/Redis设计与实现笔记-章4-字典/" rel="prev" title="Redis设计与实现笔记-章4.字典">
+                Redis设计与实现笔记-章4.字典 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2017/01/06/Redis设计与实现笔记-章3-链表/"
+           data-title="Redis设计与实现笔记-章3.链表" data-url="https://yezizp2012.github.io/2017/01/06/Redis设计与实现笔记-章3-链表/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="August" />
+          <p class="site-author-name" itemprop="name">August</p>
+          <p class="site-description motion-element" itemprop="description">act like a human</p>
+        </div>
+        <nav class="site-state motion-element">
+        
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">6</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">8</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/yezizp2012" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/1625067810" target="_blank" title="Weibo">
+                  
+                    <i class="fa fa-fw fa-weibo"></i>
+                  
+                  Weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://www.zhihu.com/people/suo-chang-ni-hao-67" target="_blank" title="Zhihu">
+                  
+                    <i class="fa fa-fw fa-zhihu"></i>
+                  
+                  Zhihu
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://www.facebook.com/yezizp" target="_blank" title="Facebook">
+                  
+                    <i class="fa fa-fw fa-facebook"></i>
+                  
+                  Facebook
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+          <div class="cc-license motion-element" itemprop="license">
+            <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" target="_blank">
+              <img src="/images/cc-by-nc-sa.svg" alt="Creative Commons" />
+            </a>
+          </div>
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-block">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              Links
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://blog.csdn.net/yezizp" title="yezizp的专栏" target="_blank">yezizp的专栏</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#链表的定义"><span class="nav-number">1.</span> <span class="nav-text">链表的定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#API和宏定义"><span class="nav-number">2.</span> <span class="nav-text">API和宏定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结"><span class="nav-number">3.</span> <span class="nav-text">总结</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">August</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+<div class="busuanzi-count">
+
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv"><i class="fa fa-user"></i><span class="busuanzi-value" id="busuanzi_value_site_uv"></span></span>
+  
+
+  
+    <span class="site-pv"><i class="fa fa-eye"></i><span class="busuanzi-value" id="busuanzi_value_site_pv"></span></span>
+  
+  
+</div>
+
+
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"yezizp"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementById('footer')
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+
+</body>
+</html>

@@ -1,0 +1,7 @@
+# hexo robots.txt
+User-agent: *
+Allow: /
+Allow: /archives/
+
+Sitemap: https://yezizp2012.github.io/sitemap.xml
+Sitemap: https://yezizp2012.github.io/baidusitemap.xml
