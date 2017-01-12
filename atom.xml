@@ -1,0 +1,426 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>August&#39;s Box</title>
+  
+  <link href="/atom.xml" rel="self"/>
+  
+  <link href="http:zhangpin.info/"/>
+  <updated>2017-01-11T10:20:36.000Z</updated>
+  <id>http:zhangpin.info/</id>
+  
+  <author>
+    <name>August</name>
+    
+  </author>
+  
+  <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>Redis设计与实现笔记-章5.跳表</title>
+    <link href="http:zhangpin.info/2017/01/11/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0%E7%AC%94%E8%AE%B0-%E7%AB%A05-%E8%B7%B3%E8%A1%A8/"/>
+    <id>http:zhangpin.info/2017/01/11/Redis设计与实现笔记-章5-跳表/</id>
+    <published>2017-01-11T03:46:53.000Z</published>
+    <updated>2017-01-11T10:20:36.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>跳表（<a href="https://zh.wikipedia.org/wiki/%E8%B7%B3%E8%B7%83%E5%88%97%E8%A1%A8" target="_blank" rel="external">skiplist</a>）是一种有序的数据结构，通过在每个节点中维护多个指向其他节点的指针来实现快速查找。实现简单，平均复杂度为O（logN），效率可媲美平衡树。Redis使用跳表来作为有序集合键的底层实现之一（有序集合包含元素比较多或元素是比较长的字符串时）和集群节点的内部数据结构。</p>
+<a id="more"></a>
+<h3 id="跳表的实现"><a href="#跳表的实现" class="headerlink" title="跳表的实现"></a>跳表的实现</h3><p><center><img src="zskiplist.png" alt="zskiplist"></center><br><figure class="highlight c"><figcaption><span>redis.h/zskiplistNode,zskiplist</span><a href="https://github.com/huangz1990/redis-3.0-annotated/blob/unstable/src/redis.h" target="_blank" rel="external">link</a></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> zskiplistNode &#123;<span class="comment">// 跳表节点</span></div><div class="line">    robj *obj;<span class="comment">// 成员对象</span></div><div class="line">    <span class="keyword">double</span> score;<span class="comment">// 分值</span></div><div class="line">    <span class="keyword">struct</span> zskiplistNode *backward;<span class="comment">// 后退指针，指向前一个节点，从尾往头遍历可用</span></div><div class="line">    <span class="keyword">struct</span> zskiplistLevel &#123;<span class="comment">// 层</span></div><div class="line">        <span class="keyword">struct</span> zskiplistNode *forward;<span class="comment">// 前进指针</span></div><div class="line">        <span class="keyword">unsigned</span> <span class="keyword">int</span> span;<span class="comment">// 跨度，前进指针和当前指针的距离</span></div><div class="line">    &#125; level[];</div><div class="line">&#125; zskiplistNode;</div><div class="line"></div><div class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> zskiplist &#123;<span class="comment">// 跳表</span></div><div class="line">    <span class="keyword">struct</span> zskiplistNode *header, *tail;<span class="comment">// 头尾节点</span></div><div class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> length;<span class="comment">// 表中节点的数量（不包含头节点，头节点不含数据）</span></div><div class="line">    <span class="keyword">int</span> level;<span class="comment">// 表中层数最大的节点的层数（不包含头结点）</span></div><div class="line">&#125; zskiplist;</div></pre></td></tr></table></figure></p>
+<ol>
+<li>由图和定义可知，跳表level数组可以包含多个指向后续节点的指针，通过这些指针可以加速访问其他节点。</li>
+<li>当每次创建一个新的跳表节点时，程序会根据幂次定律（power law，越大的数出现概率越小）随机生成一个介于<code>1~32</code>的值作为节点level数组的大小，即节点层的高度。</li>
+<li>跨度span可以用来计算查找的节点的rank，在查找过程中，访问过的所有层span的和即查找节点的rank。另外，从头节点开始，依次访问level数组中span为1的前进指针直到结束，可以顺序遍历到所有节点。</li>
+<li>后退指针可以从tail开始顺序遍历到header。</li>
+<li>跳表中所有节点按照score从小到大排序（score相同的节点按照obj的字典序排序），obj是一个成员对象，指向一个字符串对象（SDS）。</li>
+<li>跳表可以在O(1)时间内获取头尾节点、跳表长度。</li>
+</ol>
+<h3 id="跳表相关API"><a href="#跳表相关API" class="headerlink" title="跳表相关API"></a>跳表相关API</h3><p>跳表相关的函数定义在redis.h中，函数实现在t_zset.c里面，主要的函数及说明如下：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">函数</th>
+<th style="text-align:center">作用和代码逻辑</th>
+<th style="text-align:center">时间复杂度</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center"><code>zslCreate/zslCreateNode</code></td>
+<td style="text-align:center">创建新的跳表(包括head节点，层数为ZSKIPLIST_MAXLEVEL-32)/跳表节点</td>
+<td style="text-align:center">O(1)</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>zslFree/zslFreeNode</code></td>
+<td style="text-align:center">释放给定跳表，含所有跳表节点（释放过程中减少obj的引用计数，引用计数为0时会被自动释放<code>decrRefCount</code>）</td>
+<td style="text-align:center">O(N)，N为跳表长度</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>zslInsert</code></td>
+<td style="text-align:center">插入节点到跳表：1. 查找节点插入位置，自上而下查找比较，并记录每层插入位置的pre节点及其rank，供后面更新使用 2. <code>zslRandomLevel</code>随机一个层高给当前节点，如果随机的newlevel大于当前最大level，更新头节点level~newlevel的level数组和跳表level属性 3. 创建新节点，并更新新节点level数组pre的指针和span、level~newlevel的span，新节点的backward</td>
+<td style="text-align:center">平均O(logN)，最坏O(N)，N为跳表长度</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>zslDelete</code></td>
+<td style="text-align:center">删除指定节点： 1. 查找指定节点位置，自上而下查找比较，并记录每层查找位置的pre节点，供后面更新使用 2. 更新每层查找的pre节点的forward和span、删除节点后一个节点的backward 3.更新跳表length属性并删除节点</td>
+<td style="text-align:center">平均O(logN)，最坏O(N)，N为跳表长度</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>zslGetRank</code></td>
+<td style="text-align:center">返回节点在跳表中的rank：逻辑同查找，查找过程中span加起来</td>
+<td style="text-align:center">同上</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>zslGetElementByRank</code></td>
+<td style="text-align:center">返回给定rank的节点：自上而下，和查找类似，仅判断逻辑不一样</td>
+<td style="text-align:center">同上</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>zslIsInRange</code></td>
+<td style="text-align:center">判断给定range是否在跳表范围内</td>
+<td style="text-align:center">O(1)，直接比较(header.score, tail.score)</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>zslFirstInRange</code></td>
+<td style="text-align:center">找出符合给定range在跳表里的第一个节点：同查找类似，判断逻辑不同，先调用<code>zslIsInRange</code></td>
+<td style="text-align:center">平均O(logN)，最坏O(N)，N为跳表长度</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>zslLastInRange</code></td>
+<td style="text-align:center">找出符合给定range在跳表里的最后一个节点：同查找类似，判断逻辑不同，先调用<code>zslIsInRange</code></td>
+<td style="text-align:center">平均O(logN)，最坏O(N)，N为跳表长度</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>zslDeleteRangeByScore</code></td>
+<td style="text-align:center">删除score在给定range的所有节点：同删除，定位pre的判断逻辑不一样</td>
+<td style="text-align:center">O(N)，N跳表长度</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>zslDeleteRangeByRank</code></td>
+<td style="text-align:center">删除rank在给定range的所有节点：同删除，定位pre的判断逻辑不一样</td>
+<td style="text-align:center">O(N)，N跳表长度</td>
+</tr>
+</tbody>
+</table>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;跳表（&lt;a href=&quot;https://zh.wikipedia.org/wiki/%E8%B7%B3%E8%B7%83%E5%88%97%E8%A1%A8&quot;&gt;skiplist&lt;/a&gt;）是一种有序的数据结构，通过在每个节点中维护多个指向其他节点的指针来实现快速查找。实现简单，平均复杂度为O（logN），效率可媲美平衡树。Redis使用跳表来作为有序集合键的底层实现之一（有序集合包含元素比较多或元素是比较长的字符串时）和集群节点的内部数据结构。&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="Redis设计与实现笔记" scheme="http:zhangpin.info/categories/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0%E7%AC%94%E8%AE%B0/"/>
+    
+    
+      <category term="redis" scheme="http:zhangpin.info/tags/redis/"/>
+    
+      <category term="笔记" scheme="http:zhangpin.info/tags/%E7%AC%94%E8%AE%B0/"/>
+    
+      <category term="源码" scheme="http:zhangpin.info/tags/%E6%BA%90%E7%A0%81/"/>
+    
+      <category term="跳表" scheme="http:zhangpin.info/tags/%E8%B7%B3%E8%A1%A8/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Redis设计与实现笔记-章4.字典</title>
+    <link href="http:zhangpin.info/2017/01/09/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0%E7%AC%94%E8%AE%B0-%E7%AB%A04-%E5%AD%97%E5%85%B8/"/>
+    <id>http:zhangpin.info/2017/01/09/Redis设计与实现笔记-章4-字典/</id>
+    <published>2017-01-09T08:35:21.000Z</published>
+    <updated>2017-01-09T10:50:13.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>字典在Redis里应用十分广泛，比如最重要的作为kv的数据库就是用字典来实现的。字典也是hash键的底层实现之一（当hash键包含的键值对较多，或者键值对中元素都是比较长时），另外很多其他的功能也用到了字典。</p>
+<a id="more"></a>
+<h3 id="字典的实现"><a href="#字典的实现" class="headerlink" title="字典的实现"></a>字典的实现</h3><p>Redis的字典使用哈希表作为底层实现，每个哈希表可以有多个哈希表节点，每个节点保存了字典中的一个键值对。整个关联结构见图：<br><img src="http://note.huangz.me/_images/relationship.png"></p>
+<h4 id="定义"><a href="#定义" class="headerlink" title="定义"></a>定义</h4><h5 id="字典，字典值类型，迭代器的定义"><a href="#字典，字典值类型，迭代器的定义" class="headerlink" title="字典，字典值类型，迭代器的定义"></a>字典，字典值类型，迭代器的定义</h5><figure class="highlight c"><figcaption><span>dict.h/dict</span><a href="https://github.com/huangz1990/redis-3.0-annotated/blob/unstable/src/dict.h" target="_blank" rel="external">link</a></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> dictType &#123;</div><div class="line">    <span class="comment">// 计算哈希值的函数</span></div><div class="line">    <span class="function"><span class="keyword">unsigned</span> <span class="title">int</span> <span class="params">(*hashFunction)</span><span class="params">(<span class="keyword">const</span> <span class="keyword">void</span> *key)</span></span>;</div><div class="line">    <span class="comment">// 复制键的函数</span></div><div class="line">    <span class="keyword">void</span> *(*keyDup)(<span class="keyword">void</span> *privdata, <span class="keyword">const</span> <span class="keyword">void</span> *key);</div><div class="line">    <span class="comment">// 复制值的函数</span></div><div class="line">    <span class="keyword">void</span> *(*valDup)(<span class="keyword">void</span> *privdata, <span class="keyword">const</span> <span class="keyword">void</span> *obj);</div><div class="line">    <span class="comment">// 对比键的函数</span></div><div class="line">    <span class="keyword">int</span> (*keyCompare)(<span class="keyword">void</span> *privdata, <span class="keyword">const</span> <span class="keyword">void</span> *key1, <span class="keyword">const</span> <span class="keyword">void</span> *key2);</div><div class="line">    <span class="comment">// 销毁键的函数</span></div><div class="line">    <span class="keyword">void</span> (*keyDestructor)(<span class="keyword">void</span> *privdata, <span class="keyword">void</span> *key);</div><div class="line">    <span class="comment">// 销毁值的函数</span></div><div class="line">    <span class="keyword">void</span> (*valDestructor)(<span class="keyword">void</span> *privdata, <span class="keyword">void</span> *obj);</div><div class="line">&#125; dictType;</div><div class="line"></div><div class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> dictIterator &#123;</div><div class="line">    dict *d;<span class="comment">// 被迭代的字典</span></div><div class="line">    <span class="comment">// table ：正在被迭代的哈希表号码，值可以是 0 或 1 。</span></div><div class="line">    <span class="comment">// index ：迭代器当前所指向的哈希表索引位置。</span></div><div class="line">    <span class="comment">// safe ：标识这个迭代器是否安全</span></div><div class="line">    <span class="keyword">int</span> table, index, safe;</div><div class="line">    <span class="comment">// entry ：当前迭代到的节点的指针</span></div><div class="line">    <span class="comment">// nextEntry ：当前迭代节点的下一个节点</span></div><div class="line">    <span class="comment">//             因为在安全迭代器运作时， entry 所指向的节点可能会被修改，</span></div><div class="line">    <span class="comment">//             所以需要一个额外的指针来保存下一节点的位置，</span></div><div class="line">    <span class="comment">//             从而防止指针丢失</span></div><div class="line">    dictEntry *entry, *nextEntry;</div><div class="line">    <span class="keyword">long</span> <span class="keyword">long</span> fingerprint; <span class="comment">/* unsafe iterator fingerprint for misuse detection */</span></div><div class="line">&#125; dictIterator;</div><div class="line"></div><div class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> dict &#123;</div><div class="line">    dictType *type;<span class="comment">// 类型特定函数</span></div><div class="line">    <span class="keyword">void</span> *privdata;<span class="comment">// 私有数据，保存需要传递给特定类型特定函数的可选参数</span></div><div class="line">    dictht ht[<span class="number">2</span>];<span class="comment">// 两个哈希表，实现渐进式rehash</span></div><div class="line">    <span class="keyword">int</span> rehashidx;<span class="comment">// 不在rehashing时为-1，否则为rehashing进度</span></div><div class="line">    <span class="keyword">int</span> iterators;<span class="comment">// 目前正在运行的安全迭代器的数量</span></div><div class="line">&#125; dict;</div></pre></td></tr></table></figure>
+<h5 id="哈希表的定义"><a href="#哈希表的定义" class="headerlink" title="哈希表的定义"></a>哈希表的定义</h5><figure class="highlight c"><figcaption><span>dict.h/dictht</span><a href="https://github.com/huangz1990/redis-3.0-annotated/blob/unstable/src/dict.h" target="_blank" rel="external">link</a></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> dictht &#123;    </div><div class="line">	<span class="comment">// 哈希表数组，保存哈希表节点</span></div><div class="line">	dictEntry **table;</div><div class="line">	<span class="comment">// 哈希表大小，即table大小</span></div><div class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span> size;	    </div><div class="line">	<span class="comment">// 哈希表大小掩码，和哈希值决定键放置到table哪个index</span></div><div class="line">	<span class="comment">// 总是等于 size - 1</span></div><div class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span> sizemask;	</div><div class="line">	<span class="comment">// 该哈希表已有节点的数量</span></div><div class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span> used;</div><div class="line">&#125; dictht;</div></pre></td></tr></table></figure>
+<h5 id="哈希表节点的定义"><a href="#哈希表节点的定义" class="headerlink" title="哈希表节点的定义"></a>哈希表节点的定义</h5><figure class="highlight c"><figcaption><span>dict.h/dictht</span><a href="https://github.com/huangz1990/redis-3.0-annotated/blob/unstable/src/dict.h" target="_blank" rel="external">link</a></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> dictEntry &#123;  </div><div class="line">    <span class="keyword">void</span> *key;<span class="comment">//键</span></div><div class="line">    <span class="keyword">union</span> &#123;</div><div class="line">        <span class="keyword">void</span> *val;</div><div class="line">        <span class="keyword">uint64_t</span> u64;</div><div class="line">        <span class="keyword">int64_t</span> s64;</div><div class="line">    &#125; v;<span class="comment">//值</span></div><div class="line">    <span class="keyword">struct</span> dictEntry *next;<span class="comment">//指向下个哈希表节点，形成链表，解决冲突</span></div><div class="line">&#125; dictEntry;</div></pre></td></tr></table></figure>
+<h3 id="创建"><a href="#创建" class="headerlink" title="创建"></a>创建</h3><p>用给定的字典类型和数据创建字典，并初始化字典各项属性。<br><figure class="highlight c"><figcaption><span>dict.c/dictCreate</span><a href="https://github.com/huangz1990/redis-3.0-annotated/blob/unstable/src/dict.c" target="_blank" rel="external">link</a></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line"><span class="comment">//创建</span></div><div class="line"><span class="function">dict *<span class="title">dictCreate</span><span class="params">(dictType *type, <span class="keyword">void</span> *privDataPtr)</span> </span></div><div class="line">&#123;</div><div class="line">    dict *d = zmalloc(<span class="keyword">sizeof</span>(*d));</div><div class="line">    _dictInit(d,type,privDataPtr);</div><div class="line">    <span class="keyword">return</span> d;</div><div class="line">&#125;</div><div class="line"><span class="comment">//初始化</span></div><div class="line"><span class="keyword">int</span> _dictInit(dict *d, dictType *type, <span class="keyword">void</span> *privDataPtr)</div><div class="line">&#123;</div><div class="line">    <span class="comment">// 初始化两个哈希表的各项属性值</span></div><div class="line">    <span class="comment">// 但暂时还不分配内存给哈希表数组</span></div><div class="line">    _dictReset(&amp;d-&gt;ht[<span class="number">0</span>]);</div><div class="line">    _dictReset(&amp;d-&gt;ht[<span class="number">1</span>]);</div><div class="line">    <span class="comment">// 设置类型特定函数</span></div><div class="line">    d-&gt;type = type;</div><div class="line">    <span class="comment">// 设置私有数据</span></div><div class="line">    d-&gt;privdata = privDataPtr;</div><div class="line">    <span class="comment">// 设置哈希表 rehash 状态</span></div><div class="line">    d-&gt;rehashidx = <span class="number">-1</span>;</div><div class="line">    <span class="comment">// 设置字典的安全迭代器数量</span></div><div class="line">    d-&gt;iterators = <span class="number">0</span>;</div><div class="line">    <span class="keyword">return</span> DICT_OK;</div><div class="line">&#125;</div><div class="line"><span class="comment">//重置或初始化哈希表的各项属性</span></div><div class="line"><span class="keyword">static</span> <span class="keyword">void</span> _dictReset(dictht *ht)</div><div class="line">&#123;</div><div class="line">    ht-&gt;table = <span class="literal">NULL</span>;</div><div class="line">    ht-&gt;size = <span class="number">0</span>;</div><div class="line">    ht-&gt;sizemask = <span class="number">0</span>;</div><div class="line">    ht-&gt;used = <span class="number">0</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h3 id="哈希算法"><a href="#哈希算法" class="headerlink" title="哈希算法"></a>哈希算法</h3><p>新加一个键值对到字典的时候，需要根据key来计算出哈希值，然后通过哈希值计算出索引值，再讲键值对的哈希表节点放到哈希表数组的指定索引上。<br><code>hash = dict-&gt;type-&gt;hashFunction(key);</code><br><code>index = hash &amp; dict-&gt;ht[x].sizemask;//x为0 or 1</code><br>Redis使用的hash算法是<a href="https://zh.wikipedia.org/wiki/Murmur%E5%93%88%E5%B8%8C" target="_blank" rel="external">Murmurhash</a>的Murmurhash2版本，对于输入的键有规律的仍可以给出很好的随机分布，计算速度也很快。Redis实现见函数<code>dictGenHashFunction</code>。<br>解决键冲突的方法根据dictEntry的定义可以看出，Redis使用了链地址法来解决，即相同index的key节点用单向链表链接起来。基于新增加的键值对被访问的概率越高，redis将新添加的节点插入到链表head位置。</p>
+<h3 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h3><p>由<code>_dictReset</code>函数可以知道，字典被创建的时候并未分配内存，只有当首次向字典里加入元素的时候，内存才真正被分配（<code>dictAdd</code>）。<br><figure class="highlight c"><figcaption><span>dict.c/dictAdd</span><a href="https://github.com/huangz1990/redis-3.0-annotated/blob/unstable/src/dict.c" target="_blank" rel="external">link</a></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">dictAdd</span><span class="params">(dict *d, <span class="keyword">void</span> *key, <span class="keyword">void</span> *val)</span></span></div><div class="line">&#123;</div><div class="line">    dictEntry *entry = dictAddRaw(d,key);<span class="comment">//尝试添加键</span></div><div class="line">    <span class="keyword">if</span> (!entry) <span class="keyword">return</span> DICT_ERR;<span class="comment">//键已经存在，返回失败</span></div><div class="line">    dictSetVal(d, entry, val);<span class="comment">//不存在，设置val</span></div><div class="line">    <span class="keyword">return</span> DICT_OK;</div><div class="line">&#125;</div><div class="line"><span class="function">dictEntry *<span class="title">dictAddRaw</span><span class="params">(dict *d, <span class="keyword">void</span> *key)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="comment">//pre code ......</span></div><div class="line"></div><div class="line">    <span class="comment">// 计算键在哈希表中的索引值</span></div><div class="line">    <span class="comment">// 如果值为 -1 ，那么表示键已经存在</span></div><div class="line">    <span class="keyword">if</span> ((index = _dictKeyIndex(d, key)) == <span class="number">-1</span>)</div><div class="line">        <span class="keyword">return</span> <span class="literal">NULL</span>;</div><div class="line">        </div><div class="line">    <span class="comment">//after code, 分配空间给key，插入节点到哈希表数组，返回entry ......</span></div><div class="line">&#125;</div><div class="line"><span class="keyword">static</span> <span class="keyword">int</span> _dictKeyIndex(dict *d, <span class="keyword">const</span> <span class="keyword">void</span> *key)</div><div class="line">&#123;</div><div class="line">    <span class="comment">//pre code ......</span></div><div class="line">	 </div><div class="line">    <span class="keyword">if</span> (_dictExpandIfNeeded(d) == DICT_ERR)<span class="comment">//是否需要扩展</span></div><div class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</div><div class="line">        </div><div class="line">    <span class="comment">//after code,计算key的哈希值-&gt;索引值，遍历索引所在的链表看是否存在，</span></div><div class="line">    <span class="comment">//存在返回-1，否则返回索引值 ......</span></div><div class="line">&#125;</div><div class="line"><span class="keyword">static</span> <span class="keyword">int</span> _dictExpandIfNeeded(dict *d)</div><div class="line">&#123;</div><div class="line">    <span class="comment">//pre code ...</span></div><div class="line">    </div><div class="line">    <span class="comment">//第一次添加元素时</span></div><div class="line">    <span class="keyword">if</span> (d-&gt;ht[<span class="number">0</span>].size == <span class="number">0</span>) <span class="keyword">return</span> dictExpand(d, DICT_HT_INITIAL_SIZE);</div><div class="line"></div><div class="line">    <span class="comment">// 一下两个条件之一为真时，对字典进行扩展</span></div><div class="line">    <span class="comment">// 1）字典已使用节点数和字典大小之间的比率接近 1：1</span></div><div class="line">    <span class="comment">//    并且 dict_can_resize 为真</span></div><div class="line">    <span class="comment">// 2）已使用节点数和字典大小之间的比率超过 dict_force_resize_ratio</span></div><div class="line">    <span class="keyword">if</span> (d-&gt;ht[<span class="number">0</span>].used &gt;= d-&gt;ht[<span class="number">0</span>].size &amp;&amp;</div><div class="line">        (dict_can_resize ||</div><div class="line">         d-&gt;ht[<span class="number">0</span>].used/d-&gt;ht[<span class="number">0</span>].size &gt; dict_force_resize_ratio))</div><div class="line">    &#123;</div><div class="line">        <span class="comment">// 新哈希表的大小至少是目前已使用节点数的两倍，</span></div><div class="line">        <span class="comment">// 在dictExpand里实际扩展的大小是第一个大于传入参数的pow(2, X)</span></div><div class="line">        <span class="keyword">return</span> dictExpand(d, d-&gt;ht[<span class="number">0</span>].used*<span class="number">2</span>);</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> DICT_OK;</div><div class="line">&#125;</div></pre></td></tr></table></figure><br>所有pre code基本上是变量申明，rehashing状态check和操作等，<code>dictExpand</code>主要是给哈希表数组扩展容量，包括rehashing状态的检查。</p>
+<h3 id="rehash"><a href="#rehash" class="headerlink" title="rehash"></a>rehash</h3><p>rehash操作主要是为了保证哈希表的负载均衡，当哈希表保存的键值对数量在过多和过少时进行相应的扩容和减容。rehash的操作work on哈希表ht[1]，rehash操作的状态由字典的属性rehashidx表示。</p>
+<ol>
+<li>为ht[1]分配空间，分配的空间大小由扩容或减容的操作和ht[0].used属性来决定：<ul>
+<li>扩容的话，大小为第一个大于ht[0].used*2的pow(2, X)</li>
+<li>减容的话，大小为第一个大于ht[1].used的pow(2, X)</li>
+</ul>
+</li>
+<li>将ht[0]上面的所有键值对rehash到ht[1]上面</li>
+<li>等rehash操作完毕后，释放ht[0]，将字典的ht[0]指向ht[1]，ht[1]新建一个空白的哈希表。</li>
+</ol>
+<p>rehash自动触发的几个条件（负载因子为节点数量/哈希表大小）：</p>
+<ol>
+<li>服务器没有执行<code>BGSAVE</code>或<code>BGREWRITEAOF</code>命令时，哈希表的负载因子大于等于1，执行扩展操作</li>
+<li>服务器执行<code>BGSAVE</code>或<code>BGREWRITEAOF</code>命令时，哈希表的负载因子大于等于5，执行扩展操作</li>
+<li>哈希表的负载因子小于0.1时，执行减容操作</li>
+</ol>
+<h4 id="渐进式rehash"><a href="#渐进式rehash" class="headerlink" title="渐进式rehash"></a>渐进式rehash</h4><p>哈希表的rehash操作不是一次性、集中式的操作，除了服务器长时间没有命令执行，主动调用rehash（<code>dictRehashMilliseconds</code>）以外，还有另一种方式：渐进式rehash，操作的详细步骤如下：</p>
+<ol>
+<li>为ht[1]分配空间</li>
+<li>rehashidx设置为0，表示rehash正式开始</li>
+<li>rehash期间，所有增删改查的操作请求除了正常服务外，执行单步rehash（<code>_dictRehashStep</code>），单步rehash操作会rehash一条index的链表，同时rehashidx+1，下次rehash的时候就从rehashidx开始</li>
+<li>当ht[0]所有键值对被rehash到ht[1]的时候，rehashidx重置为-1，完成</li>
+</ol>
+<p>渐进式rehash采用分治的思想把rehash的操作平摊到服务器请求上，避免集中式操作带来的庞大计算量。另外，在渐进式rehash执行国过程中，增删改查的操作会work在两张表上，新增的话会进到ht[1]等，保证ht[0]只减不增。</p>
+<h3 id="主要API"><a href="#主要API" class="headerlink" title="主要API"></a>主要API</h3><p>字典的主要API包括了基本的字典操作:<br><code>dictCreate</code>，<code>dictAdd</code>，<code>dictReplace</code>，<code>dictFetchValue</code>，<code>dictGetRandomKey</code>，<code>dictDelete</code>，<code>dictRelease</code>。</p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;字典在Redis里应用十分广泛，比如最重要的作为kv的数据库就是用字典来实现的。字典也是hash键的底层实现之一（当hash键包含的键值对较多，或者键值对中元素都是比较长时），另外很多其他的功能也用到了字典。&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="Redis设计与实现笔记" scheme="http:zhangpin.info/categories/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0%E7%AC%94%E8%AE%B0/"/>
+    
+    
+      <category term="redis" scheme="http:zhangpin.info/tags/redis/"/>
+    
+      <category term="笔记" scheme="http:zhangpin.info/tags/%E7%AC%94%E8%AE%B0/"/>
+    
+      <category term="源码" scheme="http:zhangpin.info/tags/%E6%BA%90%E7%A0%81/"/>
+    
+      <category term="字典" scheme="http:zhangpin.info/tags/%E5%AD%97%E5%85%B8/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Redis设计与实现笔记-章3.链表</title>
+    <link href="http:zhangpin.info/2017/01/06/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0%E7%AC%94%E8%AE%B0-%E7%AB%A03-%E9%93%BE%E8%A1%A8/"/>
+    <id>http:zhangpin.info/2017/01/06/Redis设计与实现笔记-章3-链表/</id>
+    <published>2017-01-06T06:35:09.000Z</published>
+    <updated>2017-01-06T08:27:16.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>Redis用C实现了链表，应用场景包括list（元素很多或包含元素都是较长字符串时），发布和订阅，慢查询，监视器等，另外客户端状态信息，客户端输出缓冲区都是用链表来保存。</p>
+<a id="more"></a>
+<h3 id="链表的定义"><a href="#链表的定义" class="headerlink" title="链表的定义"></a>链表的定义</h3><figure class="highlight c"><figcaption><span>adlist.h/listNode,list</span><a href="https://github.com/huangz1990/redis-3.0-annotated/blob/unstable/src/adlist.h" target="_blank" rel="external">link</a></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> listNode &#123;</div><div class="line">    <span class="keyword">struct</span> listNode *prev;<span class="comment">//前一个节点</span></div><div class="line">    <span class="keyword">struct</span> listNode *next;<span class="comment">//后一个节点</span></div><div class="line">    <span class="keyword">void</span> *value;</div><div class="line">&#125; listNode;</div><div class="line"></div><div class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> listIter &#123;</div><div class="line">    <span class="comment">// 当前迭代到的节点</span></div><div class="line">    listNode *next;</div><div class="line">    <span class="comment">// 迭代的方向</span></div><div class="line">    <span class="keyword">int</span> direction;</div><div class="line">&#125; listIter; <span class="comment">//链表迭代器</span></div><div class="line"></div><div class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> <span class="built_in">list</span> &#123;</div><div class="line">    listNode *head;<span class="comment">//头节点</span></div><div class="line">    listNode *tail;<span class="comment">//尾节点</span></div><div class="line">    <span class="keyword">void</span> *(*dup)(<span class="keyword">void</span> *ptr);<span class="comment">// 节点值复制函数</span></div><div class="line">    <span class="keyword">void</span> (*<span class="built_in">free</span>)(<span class="keyword">void</span> *ptr);<span class="comment">// 节点值释放函数</span></div><div class="line">    <span class="keyword">int</span> (*match)(<span class="keyword">void</span> *ptr, <span class="keyword">void</span> *key);<span class="comment">// 节点值对比函数</span></div><div class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> len;<span class="comment">// 链表所包含的节点数量</span></div><div class="line">&#125; <span class="built_in">list</span>;</div></pre></td></tr></table></figure>
+<p>从实现上来看，Redis实现了一个双端链表，并保存了列表的长度和头尾节点指针。另外，节点的value类型为void*，加上提供<code>listSetDupMethod</code>，<code>listSetFreeMethod</code>，<code>listSetMatchMethod</code>接口实现保存不同类型的值（多态）。</p>
+<h3 id="API和宏定义"><a href="#API和宏定义" class="headerlink" title="API和宏定义"></a>API和宏定义</h3><p>针对双端链表的API，包含链表基本操作和链表迭代相关的接口<br><figure class="highlight c"><figcaption><span>adlist.h/api</span><a href="https://github.com/huangz1990/redis-3.0-annotated/blob/unstable/src/adlist.c" target="_blank" rel="external">link</a></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="built_in">list</span> *<span class="title">listCreate</span><span class="params">(<span class="keyword">void</span>)</span></span>;<span class="comment">//创建链表</span></div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">listRelease</span><span class="params">(<span class="built_in">list</span> *<span class="built_in">list</span>)</span></span>;<span class="comment">//释放链表</span></div><div class="line"><span class="function"><span class="built_in">list</span> *<span class="title">listAddNodeHead</span><span class="params">(<span class="built_in">list</span> *<span class="built_in">list</span>, <span class="keyword">void</span> *value)</span></span>;<span class="comment">//添加到head</span></div><div class="line"><span class="function"><span class="built_in">list</span> *<span class="title">listAddNodeTail</span><span class="params">(<span class="built_in">list</span> *<span class="built_in">list</span>, <span class="keyword">void</span> *value)</span></span>;<span class="comment">//添加到tail</span></div><div class="line"><span class="function"><span class="built_in">list</span> *<span class="title">listInsertNode</span><span class="params">(<span class="built_in">list</span> *<span class="built_in">list</span>, listNode *old_node, <span class="keyword">void</span> *value, <span class="keyword">int</span> after)</span></span>;<span class="comment">//插入节点，after为0插入到之前，1为之后</span></div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">listDelNode</span><span class="params">(<span class="built_in">list</span> *<span class="built_in">list</span>, listNode *node)</span></span>;<span class="comment">//删除节点</span></div><div class="line"><span class="function">listIter *<span class="title">listGetIterator</span><span class="params">(<span class="built_in">list</span> *<span class="built_in">list</span>, <span class="keyword">int</span> direction)</span></span>;<span class="comment">//创建迭代器，direction:AL_START_HEAD, AL_START_TAIL</span></div><div class="line"><span class="function">listNode *<span class="title">listNext</span><span class="params">(listIter *iter)</span></span>;<span class="comment">//获取下一个节点</span></div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">listReleaseIterator</span><span class="params">(listIter *iter)</span></span>;<span class="comment">//释放迭代器</span></div><div class="line"><span class="function"><span class="built_in">list</span> *<span class="title">listDup</span><span class="params">(<span class="built_in">list</span> *orig)</span></span>;<span class="comment">//复制链表</span></div><div class="line"><span class="function">listNode *<span class="title">listSearchKey</span><span class="params">(<span class="built_in">list</span> *<span class="built_in">list</span>, <span class="keyword">void</span> *key)</span></span>;<span class="comment">//查找key，通过match查找，未设置按照key == value</span></div><div class="line"><span class="function">listNode *<span class="title">listIndex</span><span class="params">(<span class="built_in">list</span> *<span class="built_in">list</span>, <span class="keyword">long</span> index)</span></span>;<span class="comment">//返回index位置的节点</span></div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">listRewind</span><span class="params">(<span class="built_in">list</span> *<span class="built_in">list</span>, listIter *li)</span></span>;<span class="comment">//设置迭代器方向为AL_START_HEAD</span></div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">listRewindTail</span><span class="params">(<span class="built_in">list</span> *<span class="built_in">list</span>, listIter *li)</span></span>;<span class="comment">//设置迭代器方向为AL_START_TAIL</span></div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">listRotate</span><span class="params">(<span class="built_in">list</span> *<span class="built_in">list</span>)</span></span>;<span class="comment">//取tail节点放置到头部，仅在处理客户端时使用（clientsCron）</span></div></pre></td></tr></table></figure><br>方便链表操作的宏定义<br><figure class="highlight c"><figcaption><span>adlist.h/#define</span><a href="https://github.com/huangz1990/redis-3.0-annotated/blob/unstable/src/adlist.h" target="_blank" rel="external">link</a></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#<span class="meta-keyword">define</span> listLength(l) ((l)-&gt;len)</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> listFirst(l) ((l)-&gt;head)</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> listLast(l) ((l)-&gt;tail)</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> listPrevNode(n) ((n)-&gt;prev)</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> listNextNode(n) ((n)-&gt;next)</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> listNodeValue(n) ((n)-&gt;value)</span></div><div class="line"></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> listSetDupMethod(l,m) ((l)-&gt;dup = (m))</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> listSetFreeMethod(l,m) ((l)-&gt;free = (m))</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> listSetMatchMethod(l,m) ((l)-&gt;match = (m))</span></div><div class="line"></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> listGetDupMethod(l) ((l)-&gt;dup)</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> listGetFree(l) ((l)-&gt;free)</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> listGetMatchMethod(l) ((l)-&gt;match)</span></div></pre></td></tr></table></figure></p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>总的来说，链表实现比较简单，提供了一些针对链表典型的基本操作（增删改查等）的API和宏。</p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;Redis用C实现了链表，应用场景包括list（元素很多或包含元素都是较长字符串时），发布和订阅，慢查询，监视器等，另外客户端状态信息，客户端输出缓冲区都是用链表来保存。&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="Redis设计与实现笔记" scheme="http:zhangpin.info/categories/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0%E7%AC%94%E8%AE%B0/"/>
+    
+    
+      <category term="redis" scheme="http:zhangpin.info/tags/redis/"/>
+    
+      <category term="笔记" scheme="http:zhangpin.info/tags/%E7%AC%94%E8%AE%B0/"/>
+    
+      <category term="源码" scheme="http:zhangpin.info/tags/%E6%BA%90%E7%A0%81/"/>
+    
+      <category term="链表" scheme="http:zhangpin.info/tags/%E9%93%BE%E8%A1%A8/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Redis设计与实现笔记-章2.简单动态字符串</title>
+    <link href="http:zhangpin.info/2017/01/05/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0%E7%AC%94%E8%AE%B0-%E7%AB%A02-%E7%AE%80%E5%8D%95%E5%8A%A8%E6%80%81%E5%AD%97%E7%AC%A6%E4%B8%B2/"/>
+    <id>http:zhangpin.info/2017/01/05/Redis设计与实现笔记-章2-简单动态字符串/</id>
+    <published>2017-01-05T06:35:09.000Z</published>
+    <updated>2017-01-06T03:36:54.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>Redis实现了一种简单动态字符串（simple dynamic string, SDS）来作为默认的字符串表示，代替了C语言里传统的字符串。C语言里传统的字符串仅仅作为const string使用，如打印日志时使用的message。</p>
+<a id="more"></a>
+<h3 id="SDS的定义"><a href="#SDS的定义" class="headerlink" title="SDS的定义"></a>SDS的定义</h3><figure class="highlight c"><figcaption><span>sds.h/sdshdr</span><a href="https://github.com/huangz1990/redis-3.0-annotated/blob/unstable/src/sds.h" target="_blank" rel="external">link</a></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">struct</span> sdshdr &#123;</div><div class="line">	<span class="keyword">int</span> len; <span class="comment">//记录buf已使用数量</span></div><div class="line">	<span class="keyword">int</span> <span class="built_in">free</span>; <span class="comment">//未使用数量</span></div><div class="line">	<span class="keyword">char</span> buf[];</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>根据SDS的定义我们知道，相比于传统的字符串，sdshdr额外存储了len和free两个字段。why？</p>
+<ul>
+<li>get len in O(1)</li>
+<li>avoid buffer overflow，避免缓冲区溢出，SDS修改之前会check，不够时会扩展buf的空间</li>
+<li>减少修改字符串带来的内存重分配，SDS会通过空间预分配和惰性空间释放来优化字符串的修改<ol>
+<li>空间预分配（<code>sdsMakeRoomFor</code>, then <code>sdsIncrLen</code>），如果空余空间足够的话不予分配；所需长度（addlen+len）小于SDS_MAX_PREALLOC（1M）时，分配长度为所需长度double；所需长度大于等于SDS_MAX_PREALLOC时，分配长度为所需长度+SDS_MAX_PREALLOC。通过预分配可以减少分配次数。 <figure class="highlight c"><figcaption><span>sds.c</span><a href="https://github.com/huangz1990/redis-3.0-annotated/blob/unstable/src/sds.c" target="_blank" rel="external">link</a></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div></pre></td><td class="code"><pre><div class="line"><span class="function">sds <span class="title">sdsMakeRoomFor</span><span class="params">(sds s, <span class="keyword">size_t</span> addlen)</span> </span>&#123;</div><div class="line">    </div><div class="line">    <span class="keyword">struct</span> sdshdr *sh, *newsh;</div><div class="line"></div><div class="line">    <span class="comment">// 获取 s 目前的空余空间长度</span></div><div class="line">    <span class="keyword">size_t</span> <span class="built_in">free</span> = sdsavail(s);</div><div class="line"></div><div class="line">    <span class="keyword">size_t</span> len, newlen;</div><div class="line"></div><div class="line">    <span class="comment">// s 目前的空余空间已经足够，无须再进行扩展，直接返回</span></div><div class="line">    <span class="keyword">if</span> (<span class="built_in">free</span> &gt;= addlen) <span class="keyword">return</span> s;</div><div class="line"></div><div class="line">    <span class="comment">// 获取 s 目前已占用空间的长度</span></div><div class="line">    len = sdslen(s);</div><div class="line">    sh = (<span class="keyword">void</span>*) (s-(<span class="keyword">sizeof</span>(<span class="keyword">struct</span> sdshdr)));</div><div class="line"></div><div class="line">    <span class="comment">// s 最少需要的长度</span></div><div class="line">    newlen = (len+addlen);</div><div class="line"></div><div class="line">    <span class="comment">// 根据新长度，为 s 分配新空间所需的大小</span></div><div class="line">    <span class="keyword">if</span> (newlen &lt; SDS_MAX_PREALLOC)</div><div class="line">        <span class="comment">// 如果新长度小于 SDS_MAX_PREALLOC </span></div><div class="line">        <span class="comment">// 那么为它分配两倍于所需长度的空间</span></div><div class="line">        newlen *= <span class="number">2</span>;</div><div class="line">    <span class="keyword">else</span></div><div class="line">        <span class="comment">// 否则，分配长度为目前长度加上 SDS_MAX_PREALLOC</span></div><div class="line">        newlen += SDS_MAX_PREALLOC;</div><div class="line">    <span class="comment">// T = O(N)</span></div><div class="line">    newsh = zrealloc(sh, <span class="keyword">sizeof</span>(<span class="keyword">struct</span> sdshdr)+newlen+<span class="number">1</span>);</div><div class="line">I</div><div class="line">    <span class="comment">// 内存不足，分配失败，返回</span></div><div class="line">    <span class="keyword">if</span> (newsh == <span class="literal">NULL</span>) <span class="keyword">return</span> <span class="literal">NULL</span>;</div><div class="line"></div><div class="line">    <span class="comment">// 更新 sds 的空余长度</span></div><div class="line">    newsh-&gt;<span class="built_in">free</span> = newlen - len;</div><div class="line"></div><div class="line">    <span class="comment">// 返回 sds</span></div><div class="line">    <span class="keyword">return</span> newsh-&gt;buf;</div><div class="line">&#125;</div></pre></td></tr></table></figure></li>
+<li>惰性空间释放，优化SDS字符串缩短操作，不会真的释放空间，而是通过更新free和len字段记录空间使用情况。另外，SDS还提供API真正释放未使用的空间（<code>sdsRemoveFreeSpace</code>），不用担心内存浪费。</li>
+</ol>
+</li>
+<li>二进制安全，C里面字符串里面不能包含空格，对于空格会认为是字符串的结束。SDS里面API读取数据是以二进制的形式来处理的，字符长度是通过len来获取而不是通过结束字符，所以SDR可以保存任意格式的二进制数据，图片，音频，压缩文件等。</li>
+<li>兼容C字符串函数，work on buf字段 using <code>string.h</code><h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3></li>
+</ul>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">C字符串</th>
+<th style="text-align:center">SDS</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">获取字符串长度的复杂度为 O(N) 。</td>
+<td style="text-align:center">获取字符串长度的复杂度为 O(1) 。</td>
+</tr>
+<tr>
+<td style="text-align:center">API 是不安全的，可能会造成缓冲区溢出。</td>
+<td style="text-align:center">API 是安全的，不会造成缓冲区溢出。</td>
+</tr>
+<tr>
+<td style="text-align:center">修改字符串长度 N 次必然需要执行 N 次内存重分配。</td>
+<td style="text-align:center">修改字符串长度 N 次最多需要执行 N 次内存重分配。</td>
+</tr>
+<tr>
+<td style="text-align:center">只能保存文本数据。</td>
+<td style="text-align:center">可以保存文本或者二进制数据。</td>
+</tr>
+<tr>
+<td style="text-align:center">可以使用所有 <string.h> 库中的函数。</string.h></td>
+<td style="text-align:center">可以使用一部分 <string.h> 库中的函数。</string.h></td>
+</tr>
+</tbody>
+</table>
+<h3 id="SDS-主要操作API"><a href="#SDS-主要操作API" class="headerlink" title="SDS 主要操作API"></a>SDS 主要操作API</h3><table>
+<thead>
+<tr>
+<th style="text-align:center">函数</th>
+<th style="text-align:center">作用</th>
+<th style="text-align:center">时间复杂度</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center"><code>sdsnew</code></td>
+<td style="text-align:center">创建包含给定字符串的SDS</td>
+<td style="text-align:center">O(N)，N为字符串长度</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>sdsempty</code></td>
+<td style="text-align:center">创建空字符串的SDS</td>
+<td style="text-align:center">O(1)</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>sdsfree</code></td>
+<td style="text-align:center">释放给定的SDS</td>
+<td style="text-align:center">O(N)，N为释放SDS字符串长度</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>sdslen</code></td>
+<td style="text-align:center">返回给定SDS已使用空间字节数</td>
+<td style="text-align:center">O(1)，直接读len字段</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>sdsavail</code></td>
+<td style="text-align:center">返回给定SDS可用空间字节数</td>
+<td style="text-align:center">O(1)，直接读free字段</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>sdsdup</code></td>
+<td style="text-align:center">创建给定SDS的副本，copy</td>
+<td style="text-align:center">O(N)，N为给定SDS长度</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>sdsclear</code></td>
+<td style="text-align:center">清空SDS内容</td>
+<td style="text-align:center">O(1)，惰性释放</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>sdscat</code></td>
+<td style="text-align:center">拼接给定字符串到SDS末尾</td>
+<td style="text-align:center">O(N)，N为给定字符串长度</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>sdscatsds</code></td>
+<td style="text-align:center">拼接给定SDS到SDS末尾</td>
+<td style="text-align:center">O(N)，N为给定SDS长度</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>sdscpy</code></td>
+<td style="text-align:center">将给定字符串复制到SDS里面，覆盖</td>
+<td style="text-align:center">O(N)，N为字符串长度</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>sdsgrowzero</code></td>
+<td style="text-align:center">用空字符串扩充SDS到指定长度</td>
+<td style="text-align:center">O(N)，N为新增长度</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>sdsrange</code></td>
+<td style="text-align:center">保留SDS给定区间的数据，清除区间外的数据</td>
+<td style="text-align:center">O(N)，N为保留区间长度</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>sdstrim</code></td>
+<td style="text-align:center">去除SDS两端出现在给定字符串内的字符</td>
+<td style="text-align:center">O(M*N)，M为SDS长度，N为字符串长度</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>sdscmp</code></td>
+<td style="text-align:center">对比两个SDS是否相同</td>
+<td style="text-align:center">O(N)，N为两个SDS中较短的一个</td>
+</tr>
+</tbody>
+</table>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;Redis实现了一种简单动态字符串（simple dynamic string, SDS）来作为默认的字符串表示，代替了C语言里传统的字符串。C语言里传统的字符串仅仅作为const string使用，如打印日志时使用的message。&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="Redis设计与实现笔记" scheme="http:zhangpin.info/categories/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0%E7%AC%94%E8%AE%B0/"/>
+    
+    
+      <category term="redis" scheme="http:zhangpin.info/tags/redis/"/>
+    
+      <category term="笔记" scheme="http:zhangpin.info/tags/%E7%AC%94%E8%AE%B0/"/>
+    
+      <category term="源码" scheme="http:zhangpin.info/tags/%E6%BA%90%E7%A0%81/"/>
+    
+      <category term="字符串" scheme="http:zhangpin.info/tags/%E5%AD%97%E7%AC%A6%E4%B8%B2/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Redis设计与实现笔记-章1.引言</title>
+    <link href="http:zhangpin.info/2017/01/04/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0%E7%AC%94%E8%AE%B0-%E7%AB%A01-%E5%BC%95%E8%A8%80/"/>
+    <id>http:zhangpin.info/2017/01/04/Redis设计与实现笔记-章1-引言/</id>
+    <published>2017-01-04T08:57:44.000Z</published>
+    <updated>2017-01-06T09:33:09.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>我手上这本<a href="http://redisbook.com/" target="_blank" rel="external">Redis设计与实现</a>是基于Redis 3.0的开发版，主要包括四个大的部分：<code>数据结构与对象</code>，<code>单机数据库的实现</code>，<code>多机数据库的实现</code>，<code>独立功能的实现</code>。在阅读这本书的时候，另外参考了作者<br>黄建宏的<a href="http://note.huangz.me/storage/redis_code_analysis/index.html" target="_blank" rel="external">Redis源码分析</a>和<a href="https://github.com/huangz1990/redis-3.0-annotated" target="_blank" rel="external">github</a>，感谢。<br><a id="more"></a></p>
+<h3 id="数据结构与对象"><a href="#数据结构与对象" class="headerlink" title="数据结构与对象"></a>数据结构与对象</h3><p>Redis是kv的内存数据库，每个key和value都是object，key是<strong>string</strong>类型，value可以是<strong>string，list，hash，set，sorted set</strong>五个类型里面之一。这部分分别介绍这五种数据结构的底层实现及性能。</p>
+<h3 id="单机数据库的实现"><a href="#单机数据库的实现" class="headerlink" title="单机数据库的实现"></a>单机数据库的实现</h3><p>介绍单机数据库的实现方法，包括如何保存kv，过期时间处理，持久化，事件，客户端实现，命令的解析处理等。</p>
+<h3 id="多机数据库的实现"><a href="#多机数据库的实现" class="headerlink" title="多机数据库的实现"></a>多机数据库的实现</h3><p>主要涉及Redis的复制，Sentinel，Cluster三个多机功能的实现。</p>
+<h3 id="独立功能实现"><a href="#独立功能实现" class="headerlink" title="独立功能实现"></a>独立功能实现</h3><p>发布和订阅，事务，Lua脚本，排序实现，二进制位数组，慢查询日志，监视器等。</p>
+<h3 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h3><p><a href="http://note.huangz.me/storage/redis_code_analysis/index.html" target="_blank" rel="external">黄建宏：Redis源码分析</a><br><a href="https://github.com/huangz1990/redis-3.0-annotated" target="_blank" rel="external">github：Redis 3.0 源码注释</a></p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;我手上这本&lt;a href=&quot;http://redisbook.com/&quot;&gt;Redis设计与实现&lt;/a&gt;是基于Redis 3.0的开发版，主要包括四个大的部分：&lt;code&gt;数据结构与对象&lt;/code&gt;，&lt;code&gt;单机数据库的实现&lt;/code&gt;，&lt;code&gt;多机数据库的实现&lt;/code&gt;，&lt;code&gt;独立功能的实现&lt;/code&gt;。在阅读这本书的时候，另外参考了作者&lt;br&gt;黄建宏的&lt;a href=&quot;http://note.huangz.me/storage/redis_code_analysis/index.html&quot;&gt;Redis源码分析&lt;/a&gt;和&lt;a href=&quot;https://github.com/huangz1990/redis-3.0-annotated&quot;&gt;github&lt;/a&gt;，感谢。&lt;br&gt;
+    
+    </summary>
+    
+      <category term="Redis设计与实现笔记" scheme="http:zhangpin.info/categories/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0%E7%AC%94%E8%AE%B0/"/>
+    
+    
+      <category term="redis" scheme="http:zhangpin.info/tags/redis/"/>
+    
+      <category term="笔记" scheme="http:zhangpin.info/tags/%E7%AC%94%E8%AE%B0/"/>
+    
+      <category term="源码" scheme="http:zhangpin.info/tags/%E6%BA%90%E7%A0%81/"/>
+    
+      <category term="引言" scheme="http:zhangpin.info/tags/%E5%BC%95%E8%A8%80/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>hello world</title>
+    <link href="http:zhangpin.info/2017/01/03/hello%20world/"/>
+    <id>http:zhangpin.info/2017/01/03/hello world/</id>
+    <published>2017-01-03T08:31:18.000Z</published>
+    <updated>2017-01-03T08:40:43.000Z</updated>
+    
+    <content type="html"><![CDATA[<h2 id="hello-world"><a href="#hello-world" class="headerlink" title="hello world"></a><center>hello world</center></h2>]]></content>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;hello-world&quot;&gt;&lt;a href=&quot;#hello-world&quot; class=&quot;headerlink&quot; title=&quot;hello world&quot;&gt;&lt;/a&gt;&lt;center&gt;hello world&lt;/center&gt;&lt;/h2&gt;
+    
+    </summary>
+    
+    
+  </entry>
+  
+</feed>
