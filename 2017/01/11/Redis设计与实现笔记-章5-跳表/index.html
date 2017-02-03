@@ -97,7 +97,7 @@
 <meta property="og:site_name" content="August's Box">
 <meta property="og:description" content="跳表（skiplist）是一种有序的数据结构，通过在每个节点中维护多个指向其他节点的指针来实现快速查找。实现简单，平均复杂度为O（logN），效率可媲美平衡树。Redis使用跳表来作为有序集合键的底层实现之一（有序集合包含元素比较多或元素是比较长的字符串时）和集群节点的内部数据结构。">
 <meta property="og:image" content="http:zhangpin.info/zskiplist.png">
-<meta property="og:updated_time" content="2017-01-11T10:20:36.000Z">
+<meta property="og:updated_time" content="2017-01-12T04:14:02.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Redis设计与实现笔记-章5.跳表">
 <meta name="twitter:description" content="跳表（skiplist）是一种有序的数据结构，通过在每个节点中维护多个指向其他节点的指针来实现快速查找。实现简单，平均复杂度为O（logN），效率可媲美平衡树。Redis使用跳表来作为有序集合键的底层实现之一（有序集合包含元素比较多或元素是比较长的字符串时）和集群节点的内部数据结构。">
@@ -386,7 +386,7 @@
 <ol>
 <li>由图和定义可知，跳表level数组可以包含多个指向后续节点的指针，通过这些指针可以加速访问其他节点。</li>
 <li>当每次创建一个新的跳表节点时，程序会根据幂次定律（power law，越大的数出现概率越小）随机生成一个介于<code>1~32</code>的值作为节点level数组的大小，即节点层的高度。</li>
-<li>跨度span可以用来计算查找的节点的rank，在查找过程中，访问过的所有层span的和即查找节点的rank。另外，从头节点开始，依次访问level数组中span为1的前进指针直到结束，可以顺序遍历到所有节点。</li>
+<li>跨度span可以用来计算查找的节点的rank，在查找过程中，访问过的所有层span的和即查找节点的rank。另外，从头节点开始，依次访问level数组中span为1(L1/level[0])的前进指针直到结束，可以顺序遍历到所有节点。</li>
 <li>后退指针可以从tail开始顺序遍历到header。</li>
 <li>跳表中所有节点按照score从小到大排序（score相同的节点按照obj的字典序排序），obj是一个成员对象，指向一个字符串对象（SDS）。</li>
 <li>跳表可以在O(1)时间内获取头尾节点、跳表长度。</li>
@@ -506,6 +506,10 @@
 
           <div class="post-nav-prev post-nav-item">
             
+              <a href="/2017/01/19/Redis设计与实现笔记-章6-整数集合/" rel="prev" title="Redis设计与实现笔记-章6.整数集合">
+                Redis设计与实现笔记-章6.整数集合 <i class="fa fa-chevron-right"></i>
+              </a>
+            
           </div>
         </div>
       
@@ -578,7 +582,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives">
-                <span class="site-state-item-count">6</span>
+                <span class="site-state-item-count">7</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -596,7 +600,7 @@
           
             <div class="site-state-item site-state-tags">
               <a href="/tags">
-                <span class="site-state-item-count">8</span>
+                <span class="site-state-item-count">9</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>
