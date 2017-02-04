@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http:zhangpin.info/"/>
-  <updated>2017-01-19T03:48:10.000Z</updated>
+  <updated>2017-02-04T03:48:25.000Z</updated>
   <id>http:zhangpin.info/</id>
   
   <author>
@@ -20,15 +20,73 @@
     <link href="http:zhangpin.info/2017/01/19/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0%E7%AC%94%E8%AE%B0-%E7%AB%A06-%E6%95%B4%E6%95%B0%E9%9B%86%E5%90%88/"/>
     <id>http:zhangpin.info/2017/01/19/Redis设计与实现笔记-章6-整数集合/</id>
     <published>2017-01-19T03:46:30.000Z</published>
-    <updated>2017-01-19T03:48:10.000Z</updated>
+    <updated>2017-02-04T03:48:25.000Z</updated>
     
-    <content type="html"><![CDATA[<p>整数集合</p>
+    <content type="html"><![CDATA[<p>整数集合（intset）是集合键的底层实现之一（当一个集合只包含整数值元素，并且元素数量不多时，不超过<code>set_max_intset_entries</code>的配置），可以保存<code>int16_t</code>，<code>int32_t</code>，<code>int64_t</code>的整数值且不会重复。</p>
 <a id="more"></a>
+<h3 id="intset的定义"><a href="#intset的定义" class="headerlink" title="intset的定义"></a>intset的定义</h3><figure class="highlight c"><figcaption><span>intset.h/intset</span><a href="https://github.com/huangz1990/redis-3.0-annotated/blob/unstable/src/intset.h" target="_blank" rel="external">link</a></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> intset &#123;    </div><div class="line">    <span class="comment">// 编码方式（INTSET_ENC_INT16，INTSET_ENC_INT32，INTSET_ENC_INT64）</span></div><div class="line">    <span class="keyword">uint32_t</span> encoding;</div><div class="line">    <span class="comment">// 集合包含的元素数量</span></div><div class="line">    <span class="keyword">uint32_t</span> length;</div><div class="line">    <span class="comment">// 保存元素的数组</span></div><div class="line">    <span class="keyword">int8_t</span> contents[];</div><div class="line">&#125; intset;</div></pre></td></tr></table></figure>
+<ul>
+<li>intset里用contents数组来保存元素，虽然是按照int8_t来定义的，但是元素的类型取决于encoding。三种encoding类型分别为<code>int16_t</code>，<code>int32_t</code>，<code>int64_t</code>的大小，所以contents数组的实际大小为encoding*length</li>
+<li>各项元素在contents里面是按照从小到大的顺序保存的，当新增的元素类型比当前集合的编码长时，需要对集合进行升级，即将修改当前集合的编码方式并重新排列元素在contents数组里的位置并插入新的元素（所以任意时刻集合里保存的元素类型都是一样的，不存在不同类型存在同一集合中）</li>
+</ul>
+<h3 id="intset的升级"><a href="#intset的升级" class="headerlink" title="intset的升级"></a>intset的升级</h3><p>当新增的元素比当前编码的数据类型长时，需要进行升级（<code>intsetUpgradeAndAdd</code>）<br><figure class="highlight c"><figcaption><span>intset.c/intsetUpgradeAndAdd</span><a href="https://github.com/huangz1990/redis-3.0-annotated/blob/unstable/src/intset.c" target="_blank" rel="external">link</a></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">static</span> intset *<span class="title">intsetUpgradeAndAdd</span><span class="params">(intset *is, <span class="keyword">int64_t</span> value)</span> </span>&#123;</div><div class="line">    </div><div class="line">    <span class="comment">// 当前的编码方式</span></div><div class="line">    <span class="keyword">uint8_t</span> curenc = intrev32ifbe(is-&gt;encoding);</div><div class="line"></div><div class="line">    <span class="comment">// 新值所需的编码方式</span></div><div class="line">    <span class="keyword">uint8_t</span> newenc = _intsetValueEncoding(value);</div><div class="line"></div><div class="line">    <span class="comment">// 当前集合的元素数量</span></div><div class="line">    <span class="keyword">int</span> length = intrev32ifbe(is-&gt;length);</div><div class="line"></div><div class="line">    <span class="comment">// 根据 value 的值，决定是将它添加到底层数组的最前端还是最后端</span></div><div class="line">    <span class="comment">// 注意，因为 value 的编码比集合原有的其他元素的编码都要大</span></div><div class="line">    <span class="comment">// 所以 value 要么大于集合中的所有元素，要么小于集合中的所有元素</span></div><div class="line">    <span class="comment">// 因此，value 只能添加到底层数组的最前端或最后端</span></div><div class="line">    <span class="keyword">int</span> prepend = value &lt; <span class="number">0</span> ? <span class="number">1</span> : <span class="number">0</span>;</div><div class="line"></div><div class="line">    <span class="comment">/* First set new encoding and resize */</span></div><div class="line">    <span class="comment">// 更新集合的编码方式</span></div><div class="line">    is-&gt;encoding = intrev32ifbe(newenc);</div><div class="line">    <span class="comment">// 根据新编码对集合（的底层数组）进行空间调整</span></div><div class="line">    <span class="comment">// T = O(N)</span></div><div class="line">    is = intsetResize(is,intrev32ifbe(is-&gt;length)+<span class="number">1</span>);</div><div class="line"></div><div class="line">    <span class="comment">/* Upgrade back-to-front so we don't overwrite values.</span></div><div class="line">     * Note that the "prepend" variable is used to make sure we have an empty</div><div class="line">     * space at either the beginning or the end of the intset. */</div><div class="line">    <span class="comment">// 根据集合原来的编码方式，从底层数组中取出集合元素</span></div><div class="line">    <span class="comment">// 然后再将元素以新编码的方式添加到集合中</span></div><div class="line">    <span class="comment">// 当完成了这个步骤之后，集合中所有原有的元素就完成了从旧编码到新编码的转换</span></div><div class="line">    <span class="comment">// 因为新分配的空间都放在数组的后端，所以程序先从后端向前端移动元素</span></div><div class="line">    <span class="comment">// 举个例子，假设原来有 curenc 编码的三个元素，它们在数组中排列如下：</span></div><div class="line">    <span class="comment">// | x | y | z | </span></div><div class="line">    <span class="comment">// 当程序对数组进行重分配之后，数组就被扩容了（符号 ？ 表示未使用的内存）：</span></div><div class="line">    <span class="comment">// | x | y | z | ? |   ?   |   ?   |</span></div><div class="line">    <span class="comment">// 这时程序从数组后端开始，重新插入元素：</span></div><div class="line">    <span class="comment">// | x | y | z | ? |   z   |   ?   |</span></div><div class="line">    <span class="comment">// | x | y |   y   |   z   |   ?   |</span></div><div class="line">    <span class="comment">// |   x   |   y   |   z   |   ?   |</span></div><div class="line">    <span class="comment">// 最后，程序可以将新元素添加到最后 ？ 号标示的位置中：</span></div><div class="line">    <span class="comment">// |   x   |   y   |   z   |  new  |</span></div><div class="line">    <span class="comment">// 上面演示的是新元素比原来的所有元素都大的情况，也即是 prepend == 0</span></div><div class="line">    <span class="comment">// 当新元素比原来的所有元素都小时（prepend == 1），调整的过程如下：</span></div><div class="line">    <span class="comment">// | x | y | z | ? |   ?   |   ?   |</span></div><div class="line">    <span class="comment">// | x | y | z | ? |   ?   |   z   |</span></div><div class="line">    <span class="comment">// | x | y | z | ? |   y   |   z   |</span></div><div class="line">    <span class="comment">// | x | y |   x   |   y   |   z   |</span></div><div class="line">    <span class="comment">// 当添加新值时，原本的 | x | y | 的数据将被新值代替</span></div><div class="line">    <span class="comment">// |  new  |   x   |   y   |   z   |</span></div><div class="line">    <span class="comment">// T = O(N)</span></div><div class="line">    <span class="keyword">while</span>(length--)</div><div class="line">        _intsetSet(is,length+prepend,_intsetGetEncoded(is,length,curenc));</div><div class="line"></div><div class="line">    <span class="comment">/* Set the value at the beginning or the end. */</span></div><div class="line">    <span class="comment">// 设置新值，根据 prepend 的值来决定是添加到数组头还是数组尾</span></div><div class="line">    <span class="keyword">if</span> (prepend)</div><div class="line">        _intsetSet(is,<span class="number">0</span>,value);</div><div class="line">    <span class="keyword">else</span></div><div class="line">        _intsetSet(is,intrev32ifbe(is-&gt;length),value);</div><div class="line"></div><div class="line">    <span class="comment">// 更新整数集合的元素数量</span></div><div class="line">    is-&gt;length = intrev32ifbe(intrev32ifbe(is-&gt;length)+<span class="number">1</span>);</div><div class="line"></div><div class="line">    <span class="keyword">return</span> is;</div><div class="line">&#125;</div></pre></td></tr></table></figure><br>升级的好处: 灵活，不需要关注int类型，统一处理；节约内存，相比于按<code>int64_t</code>来兼容所有int类型。</p>
+<h3 id="整数集合相关API"><a href="#整数集合相关API" class="headerlink" title="整数集合相关API"></a>整数集合相关API</h3><p>相关api定义在intset.h里，实现在intset.c，主要api如下：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">函数</th>
+<th style="text-align:center">作用和代码逻辑</th>
+<th style="text-align:center">时间复杂度</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center"><code>intsetNew</code></td>
+<td style="text-align:center">创建新的整数集合，分配内存，设置编码默认为<code>INTSET_ENC_INT16</code></td>
+<td style="text-align:center">O(1)</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>intsetAdd</code></td>
+<td style="text-align:center">将给定元素添加到整数集合：1. 获取插入值的编码长度，如果大于集合编码长度，进行升级插入 2. 如果插入值已经存在<code>intsetSearch</code>，标记success为0并返回 3. 分配内存，将插入位置pos后的元素后移<code>intsetMoveTail</code>，设置pos位置上的值<code>_intsetSet</code>，并更新length属性</td>
+<td style="text-align:center">O(N)</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>intsetRemove</code></td>
+<td style="text-align:center">删除整数集合中给定元素：1. 获取删除值的编码长度，如果大于集合编码长度或查找给定元素不存在<code>intsetSearch</code>时，返回并设置success为0 2. 将查找位置pos的元素前移<code>intsetMoveTail</code>，resize<code>intsetResize</code>和设置length属性</td>
+<td style="text-align:center">O(N)</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>intsetFind</code></td>
+<td style="text-align:center">查找指定元素是否存在，根据查找元素编码长度和二分查找<code>intsetSearch</code></td>
+<td style="text-align:center">O(logN)</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>intsetRandom</code></td>
+<td style="text-align:center">从集合中随机返回一个元素</td>
+<td style="text-align:center">O(1)</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>intsetGet</code></td>
+<td style="text-align:center">返回给定pos上的元素</td>
+<td style="text-align:center">同上</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>intsetLen</code></td>
+<td style="text-align:center">返回集合长度</td>
+<td style="text-align:center">O(1)，返回length属性</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>intsetBlobLen</code></td>
+<td style="text-align:center">返回集合占用字节数，sizeof(intset)+length*encoding</td>
+<td style="text-align:center">O(1)</td>
+</tr>
+</tbody>
+</table>
 ]]></content>
     
     <summary type="html">
     
-      &lt;p&gt;整数集合&lt;/p&gt;
+      &lt;p&gt;整数集合（intset）是集合键的底层实现之一（当一个集合只包含整数值元素，并且元素数量不多时，不超过&lt;code&gt;set_max_intset_entries&lt;/code&gt;的配置），可以保存&lt;code&gt;int16_t&lt;/code&gt;，&lt;code&gt;int32_t&lt;/code&gt;，&lt;code&gt;int64_t&lt;/code&gt;的整数值且不会重复。&lt;/p&gt;
     
     </summary>
     

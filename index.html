@@ -378,7 +378,7 @@
 
       
         
-          <p>整数集合</p>
+          <p>整数集合（intset）是集合键的底层实现之一（当一个集合只包含整数值元素，并且元素数量不多时，不超过<code>set_max_intset_entries</code>的配置），可以保存<code>int16_t</code>，<code>int32_t</code>，<code>int64_t</code>的整数值且不会重复。</p>
           <!--noindex-->
           <div class="post-more-link text-center">
             <a class="btn" href="/2017/01/19/Redis设计与实现笔记-章6-整数集合/#more" rel="contents">
