@@ -72,7 +72,7 @@
 <link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="redis,笔记,源码,链表," />
+  <meta name="keywords" content="redis,笔记,源码,列表," />
 
 
 
@@ -90,16 +90,16 @@
 
 
 
-<meta name="description" content="Redis用C实现了链表，应用场景包括list（元素很多或包含元素都是较长字符串时），发布和订阅，慢查询，监视器等，另外客户端状态信息，客户端输出缓冲区都是用链表来保存。">
+<meta name="description" content="压缩列表（ziplist）是哈希键和列表键的底层实现之一（当一个列表键只包含少量元素，并且元素要么是小整数或短字符串时，不超过list_max_ziplist_entries的配置），是为了节约内存，由一系列特殊编码的连续内存块组成的顺序型数据结构。一个压缩列表可以包含任意多个节点（entry），每个节点可以保存一个字符数组或一个整数值。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Redis设计与实现笔记-章3.链表">
-<meta property="og:url" content="http:zhangpin.info/2017/01/06/Redis设计与实现笔记-章3-链表/index.html">
+<meta property="og:title" content="Redis设计与实现笔记-章7.压缩列表">
+<meta property="og:url" content="http:zhangpin.info/2017/02/04/Redis设计与实现笔记-章7-压缩列表/index.html">
 <meta property="og:site_name" content="August's Box">
-<meta property="og:description" content="Redis用C实现了链表，应用场景包括list（元素很多或包含元素都是较长字符串时），发布和订阅，慢查询，监视器等，另外客户端状态信息，客户端输出缓冲区都是用链表来保存。">
-<meta property="og:updated_time" content="2017-01-06T08:27:16.000Z">
+<meta property="og:description" content="压缩列表（ziplist）是哈希键和列表键的底层实现之一（当一个列表键只包含少量元素，并且元素要么是小整数或短字符串时，不超过list_max_ziplist_entries的配置），是为了节约内存，由一系列特殊编码的连续内存块组成的顺序型数据结构。一个压缩列表可以包含任意多个节点（entry），每个节点可以保存一个字符数组或一个整数值。">
+<meta property="og:updated_time" content="2017-02-04T09:50:33.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Redis设计与实现笔记-章3.链表">
-<meta name="twitter:description" content="Redis用C实现了链表，应用场景包括list（元素很多或包含元素都是较长字符串时），发布和订阅，慢查询，监视器等，另外客户端状态信息，客户端输出缓冲区都是用链表来保存。">
+<meta name="twitter:title" content="Redis设计与实现笔记-章7.压缩列表">
+<meta name="twitter:description" content="压缩列表（ziplist）是哈希键和列表键的底层实现之一（当一个列表键只包含少量元素，并且元素要么是小整数或短字符串时，不超过list_max_ziplist_entries的配置），是为了节约内存，由一系列特殊编码的连续内存块组成的顺序型数据结构。一个压缩列表可以包含任意多个节点（entry），每个节点可以保存一个字符数组或一个整数值。">
 
 
 
@@ -127,13 +127,13 @@
 
 
 
-  <link rel="canonical" href="http:zhangpin.info/2017/01/06/Redis设计与实现笔记-章3-链表/"/>
+  <link rel="canonical" href="http:zhangpin.info/2017/02/04/Redis设计与实现笔记-章7-压缩列表/"/>
 
 
 
 
 
-  <title> Redis设计与实现笔记-章3.链表 | August's Box </title>
+  <title> Redis设计与实现笔记-章7.压缩列表 | August's Box </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -266,7 +266,7 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-  <link itemprop="mainEntityOfPage" href="http:zhangpin.info/2017/01/06/Redis设计与实现笔记-章3-链表/">
+  <link itemprop="mainEntityOfPage" href="http:zhangpin.info/2017/02/04/Redis设计与实现笔记-章7-压缩列表/">
 
   <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
     <meta itemprop="name" content="August">
@@ -290,7 +290,7 @@
             
             
               
-                Redis设计与实现笔记-章3.链表
+                Redis设计与实现笔记-章7.压缩列表
               
             
           </h1>
@@ -305,8 +305,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-01-06T14:35:09+08:00">
-                2017-01-06
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-02-04T12:25:07+08:00">
+                2017-02-04
               </time>
             
 
@@ -346,8 +346,8 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2017/01/06/Redis设计与实现笔记-章3-链表/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2017/01/06/Redis设计与实现笔记-章3-链表/" itemprop="commentCount"></span>
+                <a href="/2017/02/04/Redis设计与实现笔记-章7-压缩列表/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2017/02/04/Redis设计与实现笔记-章7-压缩列表/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -378,12 +378,155 @@
       
 
       
-        <p>Redis用C实现了链表，应用场景包括list（元素很多或包含元素都是较长字符串时），发布和订阅，慢查询，监视器等，另外客户端状态信息，客户端输出缓冲区都是用链表来保存。</p>
+        <p>压缩列表（ziplist）是哈希键和列表键的底层实现之一（当一个列表键只包含少量元素，并且元素要么是小整数或短字符串时，不超过<code>list_max_ziplist_entries</code>的配置），是为了节约内存，由一系列特殊编码的连续内存块组成的顺序型数据结构。一个压缩列表可以包含任意多个节点（<code>entry</code>），每个节点可以保存一个字符数组或一个整数值。</p>
 <a id="more"></a>
-<h3 id="链表的定义"><a href="#链表的定义" class="headerlink" title="链表的定义"></a>链表的定义</h3><figure class="highlight c"><figcaption><span>adlist.h/listNode,list</span><a href="https://github.com/huangz1990/redis-3.0-annotated/blob/unstable/src/adlist.h" target="_blank" rel="external">link</a></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> listNode &#123;</div><div class="line">    <span class="keyword">struct</span> listNode *prev;<span class="comment">//前一个节点</span></div><div class="line">    <span class="keyword">struct</span> listNode *next;<span class="comment">//后一个节点</span></div><div class="line">    <span class="keyword">void</span> *value;</div><div class="line">&#125; listNode;</div><div class="line"></div><div class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> listIter &#123;</div><div class="line">    <span class="comment">// 当前迭代到的节点</span></div><div class="line">    listNode *next;</div><div class="line">    <span class="comment">// 迭代的方向</span></div><div class="line">    <span class="keyword">int</span> direction;</div><div class="line">&#125; listIter; <span class="comment">//链表迭代器</span></div><div class="line"></div><div class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> <span class="built_in">list</span> &#123;</div><div class="line">    listNode *head;<span class="comment">//头节点</span></div><div class="line">    listNode *tail;<span class="comment">//尾节点</span></div><div class="line">    <span class="keyword">void</span> *(*dup)(<span class="keyword">void</span> *ptr);<span class="comment">// 节点值复制函数</span></div><div class="line">    <span class="keyword">void</span> (*<span class="built_in">free</span>)(<span class="keyword">void</span> *ptr);<span class="comment">// 节点值释放函数</span></div><div class="line">    <span class="keyword">int</span> (*match)(<span class="keyword">void</span> *ptr, <span class="keyword">void</span> *key);<span class="comment">// 节点值对比函数</span></div><div class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> len;<span class="comment">// 链表所包含的节点数量</span></div><div class="line">&#125; <span class="built_in">list</span>;</div></pre></td></tr></table></figure>
-<p>从实现上来看，Redis实现了一个双端链表，并保存了列表的长度和头尾节点指针。另外，节点的value类型为void*，加上提供<code>listSetDupMethod</code>，<code>listSetFreeMethod</code>，<code>listSetMatchMethod</code>接口实现保存不同类型的值（多态）。</p>
-<h3 id="API和宏定义"><a href="#API和宏定义" class="headerlink" title="API和宏定义"></a>API和宏定义</h3><p>针对双端链表的API，包含链表基本操作和链表迭代相关的接口<br><figure class="highlight c"><figcaption><span>adlist.h/api</span><a href="https://github.com/huangz1990/redis-3.0-annotated/blob/unstable/src/adlist.c" target="_blank" rel="external">link</a></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="built_in">list</span> *<span class="title">listCreate</span><span class="params">(<span class="keyword">void</span>)</span></span>;<span class="comment">//创建链表</span></div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">listRelease</span><span class="params">(<span class="built_in">list</span> *<span class="built_in">list</span>)</span></span>;<span class="comment">//释放链表</span></div><div class="line"><span class="function"><span class="built_in">list</span> *<span class="title">listAddNodeHead</span><span class="params">(<span class="built_in">list</span> *<span class="built_in">list</span>, <span class="keyword">void</span> *value)</span></span>;<span class="comment">//添加到head</span></div><div class="line"><span class="function"><span class="built_in">list</span> *<span class="title">listAddNodeTail</span><span class="params">(<span class="built_in">list</span> *<span class="built_in">list</span>, <span class="keyword">void</span> *value)</span></span>;<span class="comment">//添加到tail</span></div><div class="line"><span class="function"><span class="built_in">list</span> *<span class="title">listInsertNode</span><span class="params">(<span class="built_in">list</span> *<span class="built_in">list</span>, listNode *old_node, <span class="keyword">void</span> *value, <span class="keyword">int</span> after)</span></span>;<span class="comment">//插入节点，after为0插入到之前，1为之后</span></div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">listDelNode</span><span class="params">(<span class="built_in">list</span> *<span class="built_in">list</span>, listNode *node)</span></span>;<span class="comment">//删除节点</span></div><div class="line"><span class="function">listIter *<span class="title">listGetIterator</span><span class="params">(<span class="built_in">list</span> *<span class="built_in">list</span>, <span class="keyword">int</span> direction)</span></span>;<span class="comment">//创建迭代器，direction:AL_START_HEAD, AL_START_TAIL</span></div><div class="line"><span class="function">listNode *<span class="title">listNext</span><span class="params">(listIter *iter)</span></span>;<span class="comment">//获取下一个节点</span></div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">listReleaseIterator</span><span class="params">(listIter *iter)</span></span>;<span class="comment">//释放迭代器</span></div><div class="line"><span class="function"><span class="built_in">list</span> *<span class="title">listDup</span><span class="params">(<span class="built_in">list</span> *orig)</span></span>;<span class="comment">//复制链表</span></div><div class="line"><span class="function">listNode *<span class="title">listSearchKey</span><span class="params">(<span class="built_in">list</span> *<span class="built_in">list</span>, <span class="keyword">void</span> *key)</span></span>;<span class="comment">//查找key，通过match查找，未设置按照key == value</span></div><div class="line"><span class="function">listNode *<span class="title">listIndex</span><span class="params">(<span class="built_in">list</span> *<span class="built_in">list</span>, <span class="keyword">long</span> index)</span></span>;<span class="comment">//返回index位置的节点</span></div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">listRewind</span><span class="params">(<span class="built_in">list</span> *<span class="built_in">list</span>, listIter *li)</span></span>;<span class="comment">//设置迭代器方向为AL_START_HEAD</span></div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">listRewindTail</span><span class="params">(<span class="built_in">list</span> *<span class="built_in">list</span>, listIter *li)</span></span>;<span class="comment">//设置迭代器方向为AL_START_TAIL</span></div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">listRotate</span><span class="params">(<span class="built_in">list</span> *<span class="built_in">list</span>)</span></span>;<span class="comment">//取tail节点放置到头部，仅在处理客户端时使用（clientsCron）</span></div></pre></td></tr></table></figure><br>方便链表操作的宏定义<br><figure class="highlight c"><figcaption><span>adlist.h/#define</span><a href="https://github.com/huangz1990/redis-3.0-annotated/blob/unstable/src/adlist.h" target="_blank" rel="external">link</a></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#<span class="meta-keyword">define</span> listLength(l) ((l)-&gt;len)</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> listFirst(l) ((l)-&gt;head)</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> listLast(l) ((l)-&gt;tail)</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> listPrevNode(n) ((n)-&gt;prev)</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> listNextNode(n) ((n)-&gt;next)</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> listNodeValue(n) ((n)-&gt;value)</span></div><div class="line"></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> listSetDupMethod(l,m) ((l)-&gt;dup = (m))</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> listSetFreeMethod(l,m) ((l)-&gt;free = (m))</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> listSetMatchMethod(l,m) ((l)-&gt;match = (m))</span></div><div class="line"></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> listGetDupMethod(l) ((l)-&gt;dup)</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> listGetFree(l) ((l)-&gt;free)</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> listGetMatchMethod(l) ((l)-&gt;match)</span></div></pre></td></tr></table></figure></p>
-<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>总的来说，链表实现比较简单，提供了一些针对链表典型的基本操作（增删改查等）的API和宏。</p>
+<h3 id="压缩列表的定义"><a href="#压缩列表的定义" class="headerlink" title="压缩列表的定义"></a>压缩列表的定义</h3><h4 id="ziplist结构"><a href="#ziplist结构" class="headerlink" title="ziplist结构"></a>ziplist结构</h4><p>ziplist的整体布局如下：</p>
+<p><center><strong>| zlbytes | zltail | zllen | entry1 | entry2 |entry3 | … | entryN | zlend |</strong></center><br>不同组成部分的类型和用途如下：</p>
+<ul>
+<li><code>zlbytes</code>: uint32_t类型，占4字节，记录整个ziplist占用字节数，在对ziplist进行内存重分配或定位<code>zlend</code>时使用</li>
+<li><code>zltail</code>: uint32_t类型，占4字节，记录尾节点距离ziplist起始地址的距离，即偏移量，用于定位尾节点位置</li>
+<li><code>zllen</code>: uint16_t类型，占2字节，记录ziplist包含节点的数目，当值小于<code>UINT16_MAX</code>(65535)时为节点数目，当值等于<code>UINT16_MAX</code>时需要遍历ziplist才能计算</li>
+<li><code>entryX</code>：节点类型，可以是字符数组也可以是整数值，长度由节点内容决定</li>
+<li><code>zlend</code>：uint8_t类型，占1字节，特殊值0xFF(255)，用于标记ziplist末端</li>
+</ul>
+<h4 id="entry的定义"><a href="#entry的定义" class="headerlink" title="entry的定义"></a>entry的定义</h4><p>entry节点由以下三个部分构成：</p>
+<p><center><strong>| previous_entry_length | encoding | content |</strong></center><br>不同组成部分的类型和用途如下：</p>
+<ul>
+<li><code>previous_entry_length</code>: 表示前一个节点的长度，以字节为单位，该属性可以为<code>1</code>个字节或<code>5</code>个字节，当前一个节点的长度小于254字节时该属性为1个字节（例：0x05），保存的即前一个节点的长度（5），当前一个节点的长度大于等于254字节时该属性为5个字节（例：0xFE00002766），其中第一个字节为默认值0xFE（254），后四个字节保存前一个节点的长度（0x00002766，10086）。通过该属性，我们可以从尾节点开始往前实现ziplist的遍历（当前指针向前偏移该属性即可）</li>
+<li><code>encoding</code>: 记录content保存的数据的类型和长度，该属性可以为<code>1</code>字节、<code>2</code>字节和<code>5</code>字节长。当属性为1字节且最高位为11开始的表示整数，其他表示字节数组。具体内容如下：</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">编码</th>
+<th style="text-align:center">编码长度</th>
+<th style="text-align:left">content属性保存的值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">11000000</td>
+<td style="text-align:center">1字节</td>
+<td style="text-align:left">int16_t类型的整数</td>
+</tr>
+<tr>
+<td style="text-align:center">11010000</td>
+<td style="text-align:center">1字节</td>
+<td style="text-align:left">int32_t类型的整数</td>
+</tr>
+<tr>
+<td style="text-align:center">11100000</td>
+<td style="text-align:center">1字节</td>
+<td style="text-align:left">int64_t类型的整数</td>
+</tr>
+<tr>
+<td style="text-align:center">11110000</td>
+<td style="text-align:center">1字节</td>
+<td style="text-align:left">24位有符号整数</td>
+</tr>
+<tr>
+<td style="text-align:center">11111110</td>
+<td style="text-align:center">1字节</td>
+<td style="text-align:left">8位有符号整数</td>
+</tr>
+<tr>
+<td style="text-align:center">1111xxxx</td>
+<td style="text-align:center">1字节</td>
+<td style="text-align:left">该编码无content属性，xxxx位保存的是(1111xxxx &amp; 0x0f) - 1，范围为0~12</td>
+</tr>
+<tr>
+<td style="text-align:center">00bbbbbb</td>
+<td style="text-align:center">1字节</td>
+<td style="text-align:left">长度小于等于63字节的字节数组</td>
+</tr>
+<tr>
+<td style="text-align:center">01bbbbbb xxxxxxxx</td>
+<td style="text-align:center">2字节</td>
+<td style="text-align:left">长度小于等于16383字节的字节数组</td>
+</tr>
+<tr>
+<td style="text-align:center">10<strong>__</strong> aaaaaaaa bbbbbbbb cccccccc dddddddd</td>
+<td style="text-align:center">5字节</td>
+<td style="text-align:left">长度小于等于4294967295字节的字节数组，不包含_部分</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><code>content</code>: 保存节点的值，类型和长度由<code>encoding</code>决定</li>
+</ul>
+<h3 id="连锁更新"><a href="#连锁更新" class="headerlink" title="连锁更新"></a>连锁更新</h3><p>由<code>previous_entry_length</code>的定义可知，该属性记录了前一节点的长度，当ziplist中所有节点的长度均介于250-253之间时候，每个节点的<code>previous_entry_length</code>属性都是一个字节。当在头部插入一长度大于等于254的节点时，原来头部e1的节点<code>previous_entry_length</code>属性需要扩展到5节点，此时需要对ziplist执行空间重新分配，重新分配后e1的长度又大于等于254，e2也需要扩容，从而引起连锁更新。此时复杂度成为O(N^2)，同理删除长节点链表里某一短节点时等等，均会出现连锁更新（ps：当ziplist节点均介于254-257时插入短节点不会出现连锁更新，避免抖动直接用5字节存储了只需要1字节的长度编码<code>__ziplistCascadeUpdate</code>）。不过，这些情况出现的概率很低，所以更新的平均复杂度在O(N)。</p>
+<h3 id="ziplist相关API"><a href="#ziplist相关API" class="headerlink" title="ziplist相关API"></a>ziplist相关API</h3><p>相关api定义在ziplist.h里，实现在ziplist.c，主要api如下：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">函数</th>
+<th style="text-align:left">作用和代码逻辑</th>
+<th style="text-align:center">时间复杂度</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center"><code>ziplistNew</code></td>
+<td style="text-align:left">创建新的压缩列表，为表头和表末端分配内存，初始化几个属性</td>
+<td style="text-align:center">O(1)</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>ziplistPush</code></td>
+<td style="text-align:left">添加新节点到ziplist的头部或尾部，根据where参数计算插入位置是头部还是尾部，调用<code>__ziplistInsert</code>：1. 获取插入位置前一个节点的长度 2. 尝试转换插入字符串为整数（<code>zipTryEncoding</code>）并计算插入节点所需字节长度（节点值长度+前置节点长度编码长度+当前节点值encoding长度）3. 插入新节点不在末端时，计算插入位置节点的前置节点长度编码长度字节和当前节点的长度编码长度字节大小差nextdiff（<code>zipPrevLenByteDiff</code>）来resize当前的ziplist（<code>ziplistResize</code>，不改变原有数据）4. 后移现有元素，将新元素的长度编码到后置节点，设置表尾迁移量，如果nextdiff不为0还需级联更新后续节点（<code>__ziplistCascadeUpdate</code>，计算前置节点长度编码所需字节和当前<code>previous_entry_length</code>长度，少则扩容继续更新，多或者够用即退出，连锁更新可能出现） 5. 写入新节点，设置新节点三个属性，更新ziplist的length</td>
+<td style="text-align:center">O(N)，最坏情况O(N^2)</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>ziplistInsert</code></td>
+<td style="text-align:left">插入新节点到指定节点之后，<code>__ziplistInsert</code></td>
+<td style="text-align:center">O(N)，最坏情况O(N^2)</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>ziplistIndex</code></td>
+<td style="text-align:left">返回给定索引上的节点，索引为正从头开始，计算节点占用字符累加进行遍历<code>zipRawEntryLength</code>，负从尾开始，根据前置节点长度累减进行遍历</td>
+<td style="text-align:center">O(N)</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>ziplistFind</code></td>
+<td style="text-align:left">查找并返回包含指定值的节点，skip参数表示隔skip个节点查找，ziplist encode其他结构时（如hash）使用</td>
+<td style="text-align:center">查找值是整数时为O(N)，字节数组时为O(N^2)（compare为O(N)）</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>ziplistNext</code></td>
+<td style="text-align:left">返回给定节点下一个节点，加<code>zipRawEntryLength</code>得到</td>
+<td style="text-align:center">O(1)</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>ziplistPrev</code></td>
+<td style="text-align:left">返回给定节点前一个节点，减去前置节点长度得到</td>
+<td style="text-align:center">O(1)</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>ziplistGet</code></td>
+<td style="text-align:left">返回给定节点保存的值，根据encoding返回值和是否成功</td>
+<td style="text-align:center">O(1)</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>ziplistDelete</code></td>
+<td style="text-align:left">删除给定节点，调用<code>__ziplistDelete</code>（删除给定节点后num个节点，传入num参数为1）：1. 计算被删除节点占用字节数，计算第一个删除节点的前置节点的长度编码所需字节和最后一个删除节点的后置节点first已有前置节点长度的编码所需字节长度差nextdiff 2. 更新first节点的前置节点长度编码，前移后续节点，resize和设置ziplist相关属性 3. nextdiff不为0时进行级联更新后续节点（<code>__ziplistCascadeUpdate</code>）</td>
+<td style="text-align:center">O(N)，最坏情况O(N^2)</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>ziplistDeleteRange</code></td>
+<td style="text-align:left">删除连续几个节点，调用<code>__ziplistDelete</code></td>
+<td style="text-align:center">O(N)，最坏情况O(N^2)</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>ziplistBlobLen</code></td>
+<td style="text-align:left">返回ziplist占用字节数，直接返回</td>
+<td style="text-align:center">O(1)</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>ziplistLen</code></td>
+<td style="text-align:left">返回ziplist包含节点数量</td>
+<td style="text-align:center">数量小于65535时为O(1)，否则遍历统计O(N)</td>
+</tr>
+</tbody>
+</table>
 
       
     </div>
@@ -413,7 +556,7 @@
           
             <a href="/tags/源码/" rel="tag"># 源码</a>
           
-            <a href="/tags/链表/" rel="tag"># 链表</a>
+            <a href="/tags/列表/" rel="tag"># 列表</a>
           
         </div>
       
@@ -422,8 +565,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2017/01/05/Redis设计与实现笔记-章2-简单动态字符串/" rel="next" title="Redis设计与实现笔记-章2.简单动态字符串">
-                <i class="fa fa-chevron-left"></i> Redis设计与实现笔记-章2.简单动态字符串
+              <a href="/2017/01/19/Redis设计与实现笔记-章6-整数集合/" rel="next" title="Redis设计与实现笔记-章6.整数集合">
+                <i class="fa fa-chevron-left"></i> Redis设计与实现笔记-章6.整数集合
               </a>
             
           </div>
@@ -431,10 +574,6 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2017/01/09/Redis设计与实现笔记-章4-字典/" rel="prev" title="Redis设计与实现笔记-章4.字典">
-                Redis设计与实现笔记-章4.字典 <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -460,8 +599,8 @@
           
   <div class="comments" id="comments">
     
-      <div class="ds-thread" data-thread-key="2017/01/06/Redis设计与实现笔记-章3-链表/"
-           data-title="Redis设计与实现笔记-章3.链表" data-url="http:zhangpin.info/2017/01/06/Redis设计与实现笔记-章3-链表/">
+      <div class="ds-thread" data-thread-key="2017/02/04/Redis设计与实现笔记-章7-压缩列表/"
+           data-title="Redis设计与实现笔记-章7.压缩列表" data-url="http:zhangpin.info/2017/02/04/Redis设计与实现笔记-章7-压缩列表/">
       </div>
     
   </div>
@@ -626,7 +765,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#链表的定义"><span class="nav-number">1.</span> <span class="nav-text">链表的定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#API和宏定义"><span class="nav-number">2.</span> <span class="nav-text">API和宏定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结"><span class="nav-number">3.</span> <span class="nav-text">总结</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#压缩列表的定义"><span class="nav-number">1.</span> <span class="nav-text">压缩列表的定义</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#ziplist结构"><span class="nav-number">1.1.</span> <span class="nav-text">ziplist结构</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#entry的定义"><span class="nav-number">1.2.</span> <span class="nav-text">entry的定义</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#连锁更新"><span class="nav-number">2.</span> <span class="nav-text">连锁更新</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ziplist相关API"><span class="nav-number">3.</span> <span class="nav-text">ziplist相关API</span></a></li></ol></div>
             
 
           </div>

@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http:zhangpin.info/"/>
-  <updated>2017-02-04T03:48:25.000Z</updated>
+  <updated>2017-02-04T09:50:33.000Z</updated>
   <id>http:zhangpin.info/</id>
   
   <author>
@@ -16,11 +16,188 @@
   <generator uri="http://hexo.io/">Hexo</generator>
   
   <entry>
+    <title>Redis设计与实现笔记-章7.压缩列表</title>
+    <link href="http:zhangpin.info/2017/02/04/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0%E7%AC%94%E8%AE%B0-%E7%AB%A07-%E5%8E%8B%E7%BC%A9%E5%88%97%E8%A1%A8/"/>
+    <id>http:zhangpin.info/2017/02/04/Redis设计与实现笔记-章7-压缩列表/</id>
+    <published>2017-02-04T04:25:07.000Z</published>
+    <updated>2017-02-04T09:50:33.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>压缩列表（ziplist）是哈希键和列表键的底层实现之一（当一个列表键只包含少量元素，并且元素要么是小整数或短字符串时，不超过<code>list_max_ziplist_entries</code>的配置），是为了节约内存，由一系列特殊编码的连续内存块组成的顺序型数据结构。一个压缩列表可以包含任意多个节点（<code>entry</code>），每个节点可以保存一个字符数组或一个整数值。</p>
+<a id="more"></a>
+<h3 id="压缩列表的定义"><a href="#压缩列表的定义" class="headerlink" title="压缩列表的定义"></a>压缩列表的定义</h3><h4 id="ziplist结构"><a href="#ziplist结构" class="headerlink" title="ziplist结构"></a>ziplist结构</h4><p>ziplist的整体布局如下：</p>
+<p><center><strong>| zlbytes | zltail | zllen | entry1 | entry2 |entry3 | … | entryN | zlend |</strong></center><br>不同组成部分的类型和用途如下：</p>
+<ul>
+<li><code>zlbytes</code>: uint32_t类型，占4字节，记录整个ziplist占用字节数，在对ziplist进行内存重分配或定位<code>zlend</code>时使用</li>
+<li><code>zltail</code>: uint32_t类型，占4字节，记录尾节点距离ziplist起始地址的距离，即偏移量，用于定位尾节点位置</li>
+<li><code>zllen</code>: uint16_t类型，占2字节，记录ziplist包含节点的数目，当值小于<code>UINT16_MAX</code>(65535)时为节点数目，当值等于<code>UINT16_MAX</code>时需要遍历ziplist才能计算</li>
+<li><code>entryX</code>：节点类型，可以是字符数组也可以是整数值，长度由节点内容决定</li>
+<li><code>zlend</code>：uint8_t类型，占1字节，特殊值0xFF(255)，用于标记ziplist末端</li>
+</ul>
+<h4 id="entry的定义"><a href="#entry的定义" class="headerlink" title="entry的定义"></a>entry的定义</h4><p>entry节点由以下三个部分构成：</p>
+<p><center><strong>| previous_entry_length | encoding | content |</strong></center><br>不同组成部分的类型和用途如下：</p>
+<ul>
+<li><code>previous_entry_length</code>: 表示前一个节点的长度，以字节为单位，该属性可以为<code>1</code>个字节或<code>5</code>个字节，当前一个节点的长度小于254字节时该属性为1个字节（例：0x05），保存的即前一个节点的长度（5），当前一个节点的长度大于等于254字节时该属性为5个字节（例：0xFE00002766），其中第一个字节为默认值0xFE（254），后四个字节保存前一个节点的长度（0x00002766，10086）。通过该属性，我们可以从尾节点开始往前实现ziplist的遍历（当前指针向前偏移该属性即可）</li>
+<li><code>encoding</code>: 记录content保存的数据的类型和长度，该属性可以为<code>1</code>字节、<code>2</code>字节和<code>5</code>字节长。当属性为1字节且最高位为11开始的表示整数，其他表示字节数组。具体内容如下：</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">编码</th>
+<th style="text-align:center">编码长度</th>
+<th style="text-align:left">content属性保存的值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">11000000</td>
+<td style="text-align:center">1字节</td>
+<td style="text-align:left">int16_t类型的整数</td>
+</tr>
+<tr>
+<td style="text-align:center">11010000</td>
+<td style="text-align:center">1字节</td>
+<td style="text-align:left">int32_t类型的整数</td>
+</tr>
+<tr>
+<td style="text-align:center">11100000</td>
+<td style="text-align:center">1字节</td>
+<td style="text-align:left">int64_t类型的整数</td>
+</tr>
+<tr>
+<td style="text-align:center">11110000</td>
+<td style="text-align:center">1字节</td>
+<td style="text-align:left">24位有符号整数</td>
+</tr>
+<tr>
+<td style="text-align:center">11111110</td>
+<td style="text-align:center">1字节</td>
+<td style="text-align:left">8位有符号整数</td>
+</tr>
+<tr>
+<td style="text-align:center">1111xxxx</td>
+<td style="text-align:center">1字节</td>
+<td style="text-align:left">该编码无content属性，xxxx位保存的是(1111xxxx &amp; 0x0f) - 1，范围为0~12</td>
+</tr>
+<tr>
+<td style="text-align:center">00bbbbbb</td>
+<td style="text-align:center">1字节</td>
+<td style="text-align:left">长度小于等于63字节的字节数组</td>
+</tr>
+<tr>
+<td style="text-align:center">01bbbbbb xxxxxxxx</td>
+<td style="text-align:center">2字节</td>
+<td style="text-align:left">长度小于等于16383字节的字节数组</td>
+</tr>
+<tr>
+<td style="text-align:center">10<strong>__</strong> aaaaaaaa bbbbbbbb cccccccc dddddddd</td>
+<td style="text-align:center">5字节</td>
+<td style="text-align:left">长度小于等于4294967295字节的字节数组，不包含_部分</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><code>content</code>: 保存节点的值，类型和长度由<code>encoding</code>决定</li>
+</ul>
+<h3 id="连锁更新"><a href="#连锁更新" class="headerlink" title="连锁更新"></a>连锁更新</h3><p>由<code>previous_entry_length</code>的定义可知，该属性记录了前一节点的长度，当ziplist中所有节点的长度均介于250-253之间时候，每个节点的<code>previous_entry_length</code>属性都是一个字节。当在头部插入一长度大于等于254的节点时，原来头部e1的节点<code>previous_entry_length</code>属性需要扩展到5节点，此时需要对ziplist执行空间重新分配，重新分配后e1的长度又大于等于254，e2也需要扩容，从而引起连锁更新。此时复杂度成为O(N^2)，同理删除长节点链表里某一短节点时等等，均会出现连锁更新（ps：当ziplist节点均介于254-257时插入短节点不会出现连锁更新，避免抖动直接用5字节存储了只需要1字节的长度编码<code>__ziplistCascadeUpdate</code>）。不过，这些情况出现的概率很低，所以更新的平均复杂度在O(N)。</p>
+<h3 id="ziplist相关API"><a href="#ziplist相关API" class="headerlink" title="ziplist相关API"></a>ziplist相关API</h3><p>相关api定义在ziplist.h里，实现在ziplist.c，主要api如下：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">函数</th>
+<th style="text-align:left">作用和代码逻辑</th>
+<th style="text-align:center">时间复杂度</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center"><code>ziplistNew</code></td>
+<td style="text-align:left">创建新的压缩列表，为表头和表末端分配内存，初始化几个属性</td>
+<td style="text-align:center">O(1)</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>ziplistPush</code></td>
+<td style="text-align:left">添加新节点到ziplist的头部或尾部，根据where参数计算插入位置是头部还是尾部，调用<code>__ziplistInsert</code>：1. 获取插入位置前一个节点的长度 2. 尝试转换插入字符串为整数（<code>zipTryEncoding</code>）并计算插入节点所需字节长度（节点值长度+前置节点长度编码长度+当前节点值encoding长度）3. 插入新节点不在末端时，计算插入位置节点的前置节点长度编码长度字节和当前节点的长度编码长度字节大小差nextdiff（<code>zipPrevLenByteDiff</code>）来resize当前的ziplist（<code>ziplistResize</code>，不改变原有数据）4. 后移现有元素，将新元素的长度编码到后置节点，设置表尾迁移量，如果nextdiff不为0还需级联更新后续节点（<code>__ziplistCascadeUpdate</code>，计算前置节点长度编码所需字节和当前<code>previous_entry_length</code>长度，少则扩容继续更新，多或者够用即退出，连锁更新可能出现） 5. 写入新节点，设置新节点三个属性，更新ziplist的length</td>
+<td style="text-align:center">O(N)，最坏情况O(N^2)</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>ziplistInsert</code></td>
+<td style="text-align:left">插入新节点到指定节点之后，<code>__ziplistInsert</code></td>
+<td style="text-align:center">O(N)，最坏情况O(N^2)</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>ziplistIndex</code></td>
+<td style="text-align:left">返回给定索引上的节点，索引为正从头开始，计算节点占用字符累加进行遍历<code>zipRawEntryLength</code>，负从尾开始，根据前置节点长度累减进行遍历</td>
+<td style="text-align:center">O(N)</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>ziplistFind</code></td>
+<td style="text-align:left">查找并返回包含指定值的节点，skip参数表示隔skip个节点查找，ziplist encode其他结构时（如hash）使用</td>
+<td style="text-align:center">查找值是整数时为O(N)，字节数组时为O(N^2)（compare为O(N)）</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>ziplistNext</code></td>
+<td style="text-align:left">返回给定节点下一个节点，加<code>zipRawEntryLength</code>得到</td>
+<td style="text-align:center">O(1)</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>ziplistPrev</code></td>
+<td style="text-align:left">返回给定节点前一个节点，减去前置节点长度得到</td>
+<td style="text-align:center">O(1)</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>ziplistGet</code></td>
+<td style="text-align:left">返回给定节点保存的值，根据encoding返回值和是否成功</td>
+<td style="text-align:center">O(1)</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>ziplistDelete</code></td>
+<td style="text-align:left">删除给定节点，调用<code>__ziplistDelete</code>（删除给定节点后num个节点，传入num参数为1）：1. 计算被删除节点占用字节数，计算第一个删除节点的前置节点的长度编码所需字节和最后一个删除节点的后置节点first已有前置节点长度的编码所需字节长度差nextdiff 2. 更新first节点的前置节点长度编码，前移后续节点，resize和设置ziplist相关属性 3. nextdiff不为0时进行级联更新后续节点（<code>__ziplistCascadeUpdate</code>）</td>
+<td style="text-align:center">O(N)，最坏情况O(N^2)</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>ziplistDeleteRange</code></td>
+<td style="text-align:left">删除连续几个节点，调用<code>__ziplistDelete</code></td>
+<td style="text-align:center">O(N)，最坏情况O(N^2)</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>ziplistBlobLen</code></td>
+<td style="text-align:left">返回ziplist占用字节数，直接返回</td>
+<td style="text-align:center">O(1)</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>ziplistLen</code></td>
+<td style="text-align:left">返回ziplist包含节点数量</td>
+<td style="text-align:center">数量小于65535时为O(1)，否则遍历统计O(N)</td>
+</tr>
+</tbody>
+</table>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;压缩列表（ziplist）是哈希键和列表键的底层实现之一（当一个列表键只包含少量元素，并且元素要么是小整数或短字符串时，不超过&lt;code&gt;list_max_ziplist_entries&lt;/code&gt;的配置），是为了节约内存，由一系列特殊编码的连续内存块组成的顺序型数据结构。一个压缩列表可以包含任意多个节点（&lt;code&gt;entry&lt;/code&gt;），每个节点可以保存一个字符数组或一个整数值。&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="Redis设计与实现笔记" scheme="http:zhangpin.info/categories/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0%E7%AC%94%E8%AE%B0/"/>
+    
+    
+      <category term="redis" scheme="http:zhangpin.info/tags/redis/"/>
+    
+      <category term="笔记" scheme="http:zhangpin.info/tags/%E7%AC%94%E8%AE%B0/"/>
+    
+      <category term="源码" scheme="http:zhangpin.info/tags/%E6%BA%90%E7%A0%81/"/>
+    
+      <category term="列表" scheme="http:zhangpin.info/tags/%E5%88%97%E8%A1%A8/"/>
+    
+  </entry>
+  
+  <entry>
     <title>Redis设计与实现笔记-章6.整数集合</title>
     <link href="http:zhangpin.info/2017/01/19/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0%E7%AC%94%E8%AE%B0-%E7%AB%A06-%E6%95%B4%E6%95%B0%E9%9B%86%E5%90%88/"/>
     <id>http:zhangpin.info/2017/01/19/Redis设计与实现笔记-章6-整数集合/</id>
     <published>2017-01-19T03:46:30.000Z</published>
-    <updated>2017-02-04T03:48:25.000Z</updated>
+    <updated>2017-02-04T09:13:40.000Z</updated>
     
     <content type="html"><![CDATA[<p>整数集合（intset）是集合键的底层实现之一（当一个集合只包含整数值元素，并且元素数量不多时，不超过<code>set_max_intset_entries</code>的配置），可以保存<code>int16_t</code>，<code>int32_t</code>，<code>int64_t</code>的整数值且不会重复。</p>
 <a id="more"></a>
@@ -35,49 +212,49 @@
 <thead>
 <tr>
 <th style="text-align:center">函数</th>
-<th style="text-align:center">作用和代码逻辑</th>
+<th style="text-align:left">作用和代码逻辑</th>
 <th style="text-align:center">时间复杂度</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td style="text-align:center"><code>intsetNew</code></td>
-<td style="text-align:center">创建新的整数集合，分配内存，设置编码默认为<code>INTSET_ENC_INT16</code></td>
+<td style="text-align:left">创建新的整数集合，分配内存，设置编码默认为<code>INTSET_ENC_INT16</code></td>
 <td style="text-align:center">O(1)</td>
 </tr>
 <tr>
 <td style="text-align:center"><code>intsetAdd</code></td>
-<td style="text-align:center">将给定元素添加到整数集合：1. 获取插入值的编码长度，如果大于集合编码长度，进行升级插入 2. 如果插入值已经存在<code>intsetSearch</code>，标记success为0并返回 3. 分配内存，将插入位置pos后的元素后移<code>intsetMoveTail</code>，设置pos位置上的值<code>_intsetSet</code>，并更新length属性</td>
+<td style="text-align:left">将给定元素添加到整数集合：1. 获取插入值的编码长度，如果大于集合编码长度，进行升级插入 2. 如果插入值已经存在<code>intsetSearch</code>，标记success为0并返回 3. 分配内存，将插入位置pos后的元素后移<code>intsetMoveTail</code>，设置pos位置上的值<code>_intsetSet</code>，并更新length属性</td>
 <td style="text-align:center">O(N)</td>
 </tr>
 <tr>
 <td style="text-align:center"><code>intsetRemove</code></td>
-<td style="text-align:center">删除整数集合中给定元素：1. 获取删除值的编码长度，如果大于集合编码长度或查找给定元素不存在<code>intsetSearch</code>时，返回并设置success为0 2. 将查找位置pos的元素前移<code>intsetMoveTail</code>，resize<code>intsetResize</code>和设置length属性</td>
+<td style="text-align:left">删除整数集合中给定元素：1. 获取删除值的编码长度，如果大于集合编码长度或查找给定元素不存在<code>intsetSearch</code>时，返回并设置success为0 2. 将查找位置pos的元素前移<code>intsetMoveTail</code>，resize<code>intsetResize</code>和设置length属性</td>
 <td style="text-align:center">O(N)</td>
 </tr>
 <tr>
 <td style="text-align:center"><code>intsetFind</code></td>
-<td style="text-align:center">查找指定元素是否存在，根据查找元素编码长度和二分查找<code>intsetSearch</code></td>
+<td style="text-align:left">查找指定元素是否存在，根据查找元素编码长度和二分查找<code>intsetSearch</code></td>
 <td style="text-align:center">O(logN)</td>
 </tr>
 <tr>
 <td style="text-align:center"><code>intsetRandom</code></td>
-<td style="text-align:center">从集合中随机返回一个元素</td>
+<td style="text-align:left">从集合中随机返回一个元素</td>
 <td style="text-align:center">O(1)</td>
 </tr>
 <tr>
 <td style="text-align:center"><code>intsetGet</code></td>
-<td style="text-align:center">返回给定pos上的元素</td>
+<td style="text-align:left">返回给定pos上的元素</td>
 <td style="text-align:center">同上</td>
 </tr>
 <tr>
 <td style="text-align:center"><code>intsetLen</code></td>
-<td style="text-align:center">返回集合长度</td>
+<td style="text-align:left">返回集合长度</td>
 <td style="text-align:center">O(1)，返回length属性</td>
 </tr>
 <tr>
 <td style="text-align:center"><code>intsetBlobLen</code></td>
-<td style="text-align:center">返回集合占用字节数，sizeof(intset)+length*encoding</td>
+<td style="text-align:left">返回集合占用字节数，sizeof(intset)+length*encoding</td>
 <td style="text-align:center">O(1)</td>
 </tr>
 </tbody>
