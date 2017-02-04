@@ -378,7 +378,7 @@
 
       
         
-          <p>压缩列表（ziplist）是哈希键和列表键的底层实现之一（当一个列表键只包含少量元素，并且元素要么是小整数或短字符串时，不超过<code>list_max_ziplist_entries</code>的配置），是为了节约内存，由一系列特殊编码的连续内存块组成的顺序型数据结构。一个压缩列表可以包含任意多个节点（<code>entry</code>），每个节点可以保存一个字符数组或一个整数值。</p>
+          <p>压缩列表（ziplist）是哈希键和列表键的底层实现之一（当一个列表键只包含少量元素，不超过<code>list_max_ziplist_entries</code>的配置，并且元素要么是小整数或短字符串时），是为了节约内存，由一系列特殊编码的连续内存块组成的顺序型数据结构。一个压缩列表可以包含任意多个节点（<code>entry</code>），每个节点可以保存一个字符数组或一个整数值。</p>
           <!--noindex-->
           <div class="post-more-link text-center">
             <a class="btn" href="/2017/02/04/Redis设计与实现笔记-章7-压缩列表/#more" rel="contents">
