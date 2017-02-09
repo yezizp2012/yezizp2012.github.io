@@ -96,7 +96,7 @@
 <meta property="og:url" content="http:zhangpin.info/2017/02/04/Redis设计与实现笔记-章7-压缩列表/index.html">
 <meta property="og:site_name" content="August's Box">
 <meta property="og:description" content="压缩列表（ziplist）是哈希键和列表键的底层实现之一（当一个列表键只包含少量元素，不超过list_max_ziplist_entries的配置，并且元素要么是小整数或短字符串时），是为了节约内存，由一系列特殊编码的连续内存块组成的顺序型数据结构。一个压缩列表可以包含任意多个节点（entry），每个节点可以保存一个字符数组或一个整数值。">
-<meta property="og:updated_time" content="2017-02-04T09:54:05.000Z">
+<meta property="og:updated_time" content="2017-02-06T06:29:25.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Redis设计与实现笔记-章7.压缩列表">
 <meta name="twitter:description" content="压缩列表（ziplist）是哈希键和列表键的底层实现之一（当一个列表键只包含少量元素，不超过list_max_ziplist_entries的配置，并且元素要么是小整数或短字符串时），是为了节约内存，由一系列特殊编码的连续内存块组成的顺序型数据结构。一个压缩列表可以包含任意多个节点（entry），每个节点可以保存一个字符数组或一个整数值。">
@@ -381,7 +381,7 @@
         <p>压缩列表（ziplist）是哈希键和列表键的底层实现之一（当一个列表键只包含少量元素，不超过<code>list_max_ziplist_entries</code>的配置，并且元素要么是小整数或短字符串时），是为了节约内存，由一系列特殊编码的连续内存块组成的顺序型数据结构。一个压缩列表可以包含任意多个节点（<code>entry</code>），每个节点可以保存一个字符数组或一个整数值。</p>
 <a id="more"></a>
 <h3 id="压缩列表的定义"><a href="#压缩列表的定义" class="headerlink" title="压缩列表的定义"></a>压缩列表的定义</h3><h4 id="ziplist结构"><a href="#ziplist结构" class="headerlink" title="ziplist结构"></a>ziplist结构</h4><p>ziplist的整体布局如下：</p>
-<p><center><strong>| zlbytes | zltail | zllen | entry1 | entry2 |entry3 | … | entryN | zlend |</strong></center><br>不同组成部分的类型和用途如下：</p>
+<p><center><br>| zlbytes | zltail | zllen | entry1 | entry2 |entry3 | … | entryN | zlend |<br>|:——-:|:——:|:—–:|:——:|:——:|:—–:|:—:|:——:|:—–:|<br></center><br>不同组成部分的类型和用途如下：</p>
 <ul>
 <li><code>zlbytes</code>: uint32_t类型，占4字节，记录整个ziplist占用字节数，在对ziplist进行内存重分配或定位<code>zlend</code>时使用</li>
 <li><code>zltail</code>: uint32_t类型，占4字节，记录尾节点距离ziplist起始地址的距离，即偏移量，用于定位尾节点位置</li>
@@ -575,6 +575,10 @@
 
           <div class="post-nav-prev post-nav-item">
             
+              <a href="/2017/02/06/Redis设计与实现笔记-章8-对象/" rel="prev" title="Redis设计与实现笔记-章8.对象">
+                Redis设计与实现笔记-章8.对象 <i class="fa fa-chevron-right"></i>
+              </a>
+            
           </div>
         </div>
       
@@ -647,7 +651,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives">
-                <span class="site-state-item-count">8</span>
+                <span class="site-state-item-count">10</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -656,7 +660,7 @@
           
             <div class="site-state-item site-state-categories">
               <a href="/categories">
-                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-count">2</span>
                 <span class="site-state-item-name">分类</span>
               </a>
             </div>
@@ -665,7 +669,7 @@
           
             <div class="site-state-item site-state-tags">
               <a href="/tags">
-                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-count">14</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>

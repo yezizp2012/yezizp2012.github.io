@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http:zhangpin.info/"/>
-  <updated>2017-02-04T09:54:05.000Z</updated>
+  <updated>2017-02-09T10:03:23.000Z</updated>
   <id>http:zhangpin.info/</id>
   
   <author>
@@ -16,16 +16,492 @@
   <generator uri="http://hexo.io/">Hexo</generator>
   
   <entry>
+    <title>Most Frequent Subtree Sum</title>
+    <link href="http:zhangpin.info/2017/02/09/Most%20Frequent%20Subtree%20Sum/"/>
+    <id>http:zhangpin.info/2017/02/09/Most Frequent Subtree Sum/</id>
+    <published>2017-02-09T09:28:06.000Z</published>
+    <updated>2017-02-09T10:03:23.000Z</updated>
+    
+    <content type="html"><![CDATA[<h3 id="Description"><a href="#Description" class="headerlink" title="Description"></a>Description</h3><p>Given the root of a tree, you are asked to find the most frequent subtree sum. The subtree sum of a node is defined as the sum of all the node values formed by the subtree rooted at that node (including the node itself). So what is the most frequent subtree sum value? If there is a tie, return all the values with the highest frequency in any order.</p>
+<p>Examples 1<br>Input:</p>
+<pre><code>  5
+ /  \
+2   -3
+</code></pre><p>return [2, -3, 4], since all the values happen only once, return all of them in any order.<br>Examples 2<br>Input:</p>
+<pre><code>  5
+ /  \
+2   -5
+</code></pre><p>return [2], since 2 happens twice, however -5 only occur once.</p>
+<h3 id="solution"><a href="#solution" class="headerlink" title="solution"></a>solution</h3><p>题目的意思是：</p>
+<p>以二叉树里的所有节点作为root的子二叉树称为subtree，这些subtree的所有节点之和称为subtree sum。现在需要统计所有子二叉树的subtree sum出现次数最多的root节点。</p>
+<p>解法：<br>递归遍历所有二叉树，记录subtree sum和子树的和。代码如下：<br><figure class="highlight python"><figcaption><span>python</span></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">findFrequentTreeSum</span><span class="params">(self, root)</span>:</span></div><div class="line">        <span class="string">"""</span></div><div class="line">        :type root: TreeNode</div><div class="line">        :rtype: List[int]</div><div class="line">        """</div><div class="line">        self.info.clear()</div><div class="line">        self.calFrequentInfo(root)</div><div class="line">        cnt = self.info[max(self.info, key=self.info.get)] <span class="keyword">if</span> root <span class="keyword">else</span> <span class="number">0</span></div><div class="line">        <span class="keyword">return</span> [key <span class="keyword">for</span> key, val <span class="keyword">in</span> self.info.items() <span class="keyword">if</span> val == cnt]</div><div class="line"></div><div class="line">    info = collections.defaultdict(int)</div><div class="line">    </div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">calFrequentInfo</span><span class="params">(self, root)</span>:</span></div><div class="line">        <span class="keyword">if</span> <span class="keyword">not</span> root:</div><div class="line">            <span class="keyword">return</span> <span class="number">0</span></div><div class="line">        value = root.val + self.calFrequentInfo(root.left) + self.calFrequentInfo(root.right)</div><div class="line">        self.info[value] += <span class="number">1</span></div><div class="line">        <span class="keyword">return</span> value</div></pre></td></tr></table></figure><br><figure class="highlight cpp"><figcaption><span>c++</span></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"><span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt; findFrequentTreeSum(TreeNode* root) &#123;</div><div class="line">        <span class="built_in">unordered_map</span>&lt;<span class="keyword">int</span>, <span class="keyword">int</span>&gt; mp;</div><div class="line">        <span class="keyword">int</span> maxCnt = <span class="number">0</span>;</div><div class="line">        <span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt; result;</div><div class="line">        calFrequentInfo(root, mp, maxCnt);</div><div class="line">        <span class="keyword">for</span>(<span class="keyword">auto</span> x : mp) &#123;</div><div class="line">            <span class="keyword">if</span>(x.second == maxCnt)</div><div class="line">                result.push_back(x.first);</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">return</span> result;</div><div class="line">    &#125;</div><div class="line">    <span class="function"><span class="keyword">int</span> <span class="title">calFrequentInfo</span><span class="params">(TreeNode* root, <span class="built_in">unordered_map</span>&lt;<span class="keyword">int</span>, <span class="keyword">int</span>&gt; &amp;mp, <span class="keyword">int</span> &amp;maxCnt)</span> </span>&#123;</div><div class="line">        <span class="keyword">if</span>(!root) <span class="keyword">return</span> <span class="number">0</span>;</div><div class="line">        <span class="keyword">int</span> value = root-&gt;val + calFrequentInfo(root-&gt;left, mp, maxCnt) + calFrequentInfo(root-&gt;right, mp, maxCnt);</div><div class="line">        mp[value]++;</div><div class="line">        maxCnt = max(maxCnt, mp[value]);</div><div class="line">        <span class="keyword">return</span> value;</div><div class="line">    &#125;</div></pre></td></tr></table></figure></p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;h3 id=&quot;Description&quot;&gt;&lt;a href=&quot;#Description&quot; class=&quot;headerlink&quot; title=&quot;Description&quot;&gt;&lt;/a&gt;Description&lt;/h3&gt;&lt;p&gt;Given the root of a tree, you are 
+    
+    </summary>
+    
+      <category term="leetcode" scheme="http:zhangpin.info/categories/leetcode/"/>
+    
+    
+      <category term="leetcode" scheme="http:zhangpin.info/tags/leetcode/"/>
+    
+      <category term="算法" scheme="http:zhangpin.info/tags/%E7%AE%97%E6%B3%95/"/>
+    
+      <category term="二叉树" scheme="http:zhangpin.info/tags/%E4%BA%8C%E5%8F%89%E6%A0%91/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Redis设计与实现笔记-章8.对象</title>
+    <link href="http:zhangpin.info/2017/02/06/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0%E7%AC%94%E8%AE%B0-%E7%AB%A08-%E5%AF%B9%E8%B1%A1/"/>
+    <id>http:zhangpin.info/2017/02/06/Redis设计与实现笔记-章8-对象/</id>
+    <published>2017-02-06T03:50:50.000Z</published>
+    <updated>2017-02-09T10:08:20.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>前面7章介绍了redis在底层用到的所有数据结构：<code>SDS</code>，<code>双端链表</code>，<code>字典</code>，<code>skiplist</code>，<code>整数集合</code>，<code>ziplist</code>。redis没有直接使用这些数据结构来实现键值对数据库，而是基于这些数据结构实现了一个对象系统，包括以下五种类型：<code>字符串对象</code>，<code>列表对象</code>，<code>哈希对象</code>，<code>集合对象</code>和<code>有序集合对象</code>。每种对象系统使用了至少一种前面的数据结构。对象系统带给redis的好处主要有以下几个方面：</p>
+<ul>
+<li>通过这五种不同类型的对象，redis在执行不同命令的时候可以对对象的类型进行检查，看该命令是否可以执行</li>
+<li>在不同的应用场景中，同一类对象可以针对不同的应用场景选择不同的数据结构实现，优化使用效率</li>
+<li>对象系统实现了基于引用技术的内存回收机制，对不再使用的对象进行回收。另外，通过引用技术可以实现对象共享机制，在适当的条件下达到对象共享，节约内存</li>
+<li>对象带有访问时间记录，可以计算数据库键的空转时长，在服务器启用<code>maxmemory</code>功能时来确定删除优先级</li>
+</ul>
+<a id="more"></a>
+<h3 id="对象的定义"><a href="#对象的定义" class="headerlink" title="对象的定义"></a>对象的定义</h3><p>redis使用对象来表示数据库中的键和值，当我们在redis中新建一个键值对时，至少会创建两个对象（例：<code>SET msg &quot;hello world&quot;</code>会创建包含字符串值”msg”的对象和包含字符串值”hello world”的对象）。键总是一个<code>字符串对象</code>，而值可以是五种对象中的任意一个。<br><figure class="highlight c"><figcaption><span>redis.h/redisObject</span><a href="https://github.com/huangz1990/redis-3.0-annotated/blob/unstable/src/redis.h" target="_blank" rel="external">link</a></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> redisObject &#123;</div><div class="line">    <span class="keyword">unsigned</span> type:<span class="number">4</span>;<span class="comment">//类型</span></div><div class="line">    <span class="keyword">unsigned</span> encoding:<span class="number">4</span>;<span class="comment">//编码</span></div><div class="line">    <span class="keyword">unsigned</span> lru:REDIS_LRU_BITS; <span class="comment">// 对象最后一次被访问的时间</span></div><div class="line">    <span class="keyword">int</span> refcount;<span class="comment">//引用计数</span></div><div class="line">    <span class="keyword">void</span> *ptr;<span class="comment">// 指向实际值的指针</span></div><div class="line">&#125; robj;</div></pre></td></tr></table></figure></p>
+<h4 id="类型"><a href="#类型" class="headerlink" title="类型"></a>类型</h4><p>对象的type属性记录了对象的类型，类型可以是以下几个常量：<br><figure class="highlight c"><figcaption><span>redis.h/redisObject</span><a href="https://github.com/huangz1990/redis-3.0-annotated/blob/unstable/src/redis.h" target="_blank" rel="external">link</a></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 对象类型</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> REDIS_STRING 0</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> REDIS_LIST 1</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> REDIS_SET 2</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> REDIS_ZSET 3</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> REDIS_HASH 4</span></div></pre></td></tr></table></figure><br>在redis中，用<code>TYPE</code>命令对键进行操作时，返回的是值的类型。五种类型返回值分别为：<code>string</code>，<code>list</code>，<code>hash</code>，<code>set</code>和<code>zset</code>。例如：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">redis&gt; SET msg <span class="string">"hello world"</span></div><div class="line">OK</div><div class="line">redis&gt; TYPE msg</div><div class="line">string</div><div class="line">redis&gt; RPUSH numbers 1 3 5</div><div class="line">(<span class="built_in">integer</span>) 6</div><div class="line">redis&gt; TYPE numbers</div><div class="line">list</div></pre></td></tr></table></figure></p>
+<h4 id="编码和底层实现"><a href="#编码和底层实现" class="headerlink" title="编码和底层实现"></a>编码和底层实现</h4><p>对象的encoding属性记录了对象所使用的编码，不同的编码代表了不同的底层数据结构实现。编码可以是以下几个常量，对应的数据结构如下：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">编码常量</th>
+<th style="text-align:left">对应底层数据结构</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">REDIS_ENCODING_RAW 0</td>
+<td style="text-align:left">简单动态字符串SDS</td>
+</tr>
+<tr>
+<td style="text-align:left">REDIS_ENCODING_INT 1</td>
+<td style="text-align:left">long类型的整数</td>
+</tr>
+<tr>
+<td style="text-align:left">REDIS_ENCODING_HT 2</td>
+<td style="text-align:left">字典</td>
+</tr>
+<tr>
+<td style="text-align:left">REDIS_ENCODING_ZIPMAP 3</td>
+<td style="text-align:left">zipmap表示小hash，redis2.6后用ziplist代替</td>
+</tr>
+<tr>
+<td style="text-align:left">REDIS_ENCODING_LINKEDLIST 4</td>
+<td style="text-align:left">双端链表</td>
+</tr>
+<tr>
+<td style="text-align:left">REDIS_ENCODING_ZIPLIST 5</td>
+<td style="text-align:left">压缩列表</td>
+</tr>
+<tr>
+<td style="text-align:left">REDIS_ENCODING_INTSET 6</td>
+<td style="text-align:left">整数集合</td>
+</tr>
+<tr>
+<td style="text-align:left">REDIS_ENCODING_SKIPLIST 7</td>
+<td style="text-align:left">跳表</td>
+</tr>
+<tr>
+<td style="text-align:left">REDIS_ENCODING_EMBSTR 8</td>
+<td style="text-align:left">embstr编码的简单动态字符串SDS</td>
+</tr>
+</tbody>
+</table>
+<p>通过对象的type属性和encoding属性，可以确定该对象是用何种底层数据结构实现的何种对象类型。事实上，每种类型的对象都至少有两种不同的编码，即存在至少两种不同的底层数据结构实现，具体在后面描述。</p>
+<p>在redis中，用<code>OBJECT ENCODING</code>命令来查看数据库键的值对象的编码。返回值为：<code>raw</code>，<code>int</code>，<code>hashtable</code>，<code>linkedlist</code>，<code>ziplist</code>，<code>intset</code>，<code>skiplist</code>，<code>embstr</code>。例如：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">redis&gt; SET msg <span class="string">"hello world"</span></div><div class="line">OK</div><div class="line">redis&gt; OBJECT ENCODING msg</div><div class="line"><span class="string">"embstr"</span></div><div class="line">redis&gt; SET story <span class="string">"long long ago, ..."</span></div><div class="line">OK</div><div class="line">redis&gt; OBJECT ENCODING story</div><div class="line"><span class="string">"raw"</span></div><div class="line">redis&gt; SADD numbers 1 3 5</div><div class="line">(<span class="built_in">integer</span>) 3</div><div class="line">redis&gt; OBJECT ENCODING numbers</div><div class="line"><span class="string">"intset"</span></div><div class="line">redis&gt; SADD numbers <span class="string">"seven"</span></div><div class="line">(<span class="built_in">integer</span>) 1</div><div class="line">redis&gt; OBJECT ENCODING numbers</div><div class="line"><span class="string">"hashtable"</span></div></pre></td></tr></table></figure><br>使用不同的底层数据结构来实现不同的对象，在元素较少时可以节约内存，连续的存储可以快速载入等。至于具体在哪种场景下使用哪种编码、什么时候切换、相同命令在不同编码下的实现等，按不同对象来进行分析。</p>
+<h3 id="字符串对象"><a href="#字符串对象" class="headerlink" title="字符串对象"></a>字符串对象</h3><p>字符串对象的编码可以是<code>int</code>，<code>raw</code>，<code>embstr</code>：</p>
+<ul>
+<li>当一个字符串对象保存的是整数值，且这个整数值可以用long类型来表示时，会将编码设置成<code>int</code>，ptr指向该整数，不在<code>LONG_MIN</code>~<code>LONG_MAX</code>范围的转string用SDS保存（<code>sdsfromlonglong</code>）。另外，在0~10000（<code>REDIS_SHARED_INTEGERS</code>）范围内的用共享整数对象</li>
+<li>当保存对象是一个字符串，且字符串长度大于39字节（<code>REDIS_ENCODING_EMBSTR_SIZE_LIMIT</code>）时，使用SDS来保存这个字符串，编码设置为<code>raw</code></li>
+<li>当保存对象是一个字符串，且字符串长度不大于39字节时，使用<code>embstr</code>编码方式来保存。这种编码方式和<code>raw</code>一样，也是用SDS来保存，不同的是，在分配对象内存和<code>sdshdr</code>内存的时候是一次分配连续的空间（<code>createEmbeddedStringObject</code>），依次包含<code>redisObject</code>和<code>sdshdr</code>。好处是分配和销毁都只需要一次内存操作，缓存时也更有优势</li>
+<li>可以用long double类型表示的浮点数也是作为字符串来保存的，编码为<code>raw</code>或<code>embstr</code>（<code>createStringObjectFromLongDouble</code>）。在某些针对浮点数的运算操作时，会先把保存的字符串转成浮点数运算，运算完再转成字符串保存</li>
+</ul>
+<h4 id="编码的转换"><a href="#编码的转换" class="headerlink" title="编码的转换"></a>编码的转换</h4><p>对<code>int</code>编码的字符串对象执行某些命令时，当修改后保存的不再是整数值时会转换成<code>raw</code>编码；redis中对于<code>embstr</code>编码的字符串对象不能进行修改，只读状态，执行修改命令时总会转成<code>raw</code>编码的字符串对象。</p>
+<h4 id="字符串命令的实现"><a href="#字符串命令的实现" class="headerlink" title="字符串命令的实现"></a>字符串命令的实现</h4><p>针对字符串对象的命令可参见<a href="https://redis.io/commands#string" target="_blank" rel="external">redis commands</a>，下表给出了各个命令在不同编码下的实现(<a href="https://github.com/huangz1990/redis-3.0-annotated/blob/unstable/src/t_string.c" target="_blank" rel="external">t_string.c</a>)：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">命令</th>
+<th style="text-align:right"><code>int</code>编码</th>
+<th style="text-align:right"><code>embstr</code>编码</th>
+<th style="text-align:right"><code>raw</code>编码</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center"><code>SET</code>/<code>SETNX</code>/<code>SETEX</code>/<code>PSETEX</code></td>
+<td style="text-align:right">根据值选择相应编码</td>
+<td style="text-align:right">同</td>
+<td style="text-align:right">同</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>GET</code></td>
+<td style="text-align:right">拷贝对象的整数值，转成字符串（<code>ll2string</code>）返回</td>
+<td style="text-align:right">直接返回</td>
+<td style="text-align:right">直接返回</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>GETSET</code></td>
+<td style="text-align:right">同<code>SET</code>+<code>GET</code></td>
+<td style="text-align:right">同</td>
+<td style="text-align:right">同</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>SETRANGE</code></td>
+<td style="text-align:right">转<code>raw</code>处理</td>
+<td style="text-align:right">转<code>raw</code>处理</td>
+<td style="text-align:right">设置字符串特定索引上的值，长度不够时扩展（<code>sdsgrowzero</code>）</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>GETRANGE</code></td>
+<td style="text-align:right">拷贝对象的整数值，转成字符串（<code>ll2string</code>）返回指定索引上的值</td>
+<td style="text-align:right">返回指定索引上的值</td>
+<td style="text-align:right">同</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>MGET</code></td>
+<td style="text-align:right">遍历key，其他和<code>GET</code>类似</td>
+<td style="text-align:right">同</td>
+<td style="text-align:right">同</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>MSET</code>/<code>MSETNX</code>/<code>MSETEX</code></td>
+<td style="text-align:right">遍历key/value，其他和<code>SET</code>类似</td>
+<td style="text-align:right">同</td>
+<td style="text-align:right">同</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>INCR</code>/<code>INCRBY</code>/<code>DECR</code>/<code>DECRBY</code></td>
+<td style="text-align:right">调用<code>incrDecrCommand</code>，参数不同，整型或可以转整型时（<code>getLongLongFromObjectOrReply</code>）work，计算完按结果set</td>
+<td style="text-align:right">同</td>
+<td style="text-align:right">同</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>INCRBYFLOAT</code></td>
+<td style="text-align:right">整型转或字符串可以转long double时（<code>getLongDoubleFromObjectOrReply</code>）work，计算完按结果set（<code>embstr</code>或<code>raw</code>）</td>
+<td style="text-align:right">同</td>
+<td style="text-align:right">同</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>APPEND</code></td>
+<td style="text-align:right">转<code>raw</code>处理</td>
+<td style="text-align:right">转<code>raw</code>处理</td>
+<td style="text-align:right">调用<code>sdscatlen</code>追加字符串到末尾</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>STRLEN</code></td>
+<td style="text-align:right">转字符串，返回字符串长度</td>
+<td style="text-align:right">直接返回长度</td>
+<td style="text-align:right">直接返回长度</td>
+</tr>
+</tbody>
+</table>
+<h3 id="列表对象"><a href="#列表对象" class="headerlink" title="列表对象"></a>列表对象</h3><p>列表对象的编码可以是<code>ziplist</code>和<code>linkedlist</code>，不同的编码ptr指针指向不同的对象。其中，在<code>linkedlist</code>编码的列表对象里，<code>listNode</code>的value指针实际上是指向一个字符串对象（并非SDS的直接地址，后面几种对象嵌套字符串对象相同），字符串对象里保存的是列表节点的值。</p>
+<h4 id="编码转换"><a href="#编码转换" class="headerlink" title="编码转换"></a>编码转换</h4><p>当列表满足以下两个条件时，使用<code>ziplist</code>编码，否则会转换成<code>linkedlist</code>编码（<code>listTypeTryConversion</code>）：</p>
+<ul>
+<li>保存的所有字符串元素的长度小于64字节（<code>list_max_ziplist_value</code>）</li>
+<li>保存元素数量小于512个（<code>list_max_ziplist_entries</code>）</li>
+</ul>
+<h4 id="列表命令的实现"><a href="#列表命令的实现" class="headerlink" title="列表命令的实现"></a>列表命令的实现</h4><p>针对列表对象的命令可参见<a href="https://redis.io/commands#list" target="_blank" rel="external">redis commands</a>，下表给出了各个命令在不同编码下的实现(<a href="https://github.com/huangz1990/redis-3.0-annotated/blob/unstable/src/t_list.c" target="_blank" rel="external">t_list.c</a>)：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">命令</th>
+<th style="text-align:right"><code>ziplist</code>编码</th>
+<th style="text-align:right"><code>linkedlist</code>编码</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center"><code>LPUSH</code>/<code>RPUSH</code>/<code>LPUSHX</code>/<code>RPUSHX</code></td>
+<td style="text-align:right">调用<code>ziplistPush</code>，pos头节点或尾节点</td>
+<td style="text-align:right">调用<code>listAddNodeHead</code>或<code>listAddNodeTail</code></td>
+</tr>
+<tr>
+<td style="text-align:center"><code>LPOP</code>/<code>RPOP</code></td>
+<td style="text-align:right"><code>ziplistIndex</code>定位头或尾，为弹出元素创建对象，调用<code>ziplistDelete</code>删除</td>
+<td style="text-align:right">获取头节点或尾节点对象，调用<code>listDelNode</code>从链表删除</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>LLEN</code></td>
+<td style="text-align:right">调用<code>ziplistLen</code></td>
+<td style="text-align:right">调用<code>listLength</code></td>
+</tr>
+<tr>
+<td style="text-align:center"><code>LINDEX</code></td>
+<td style="text-align:right">调用<code>ziplistIndex</code></td>
+<td style="text-align:right">调用<code>listIndex</code></td>
+</tr>
+<tr>
+<td style="text-align:center"><code>LINSERT</code></td>
+<td style="text-align:right">实现了列表的迭代器<code>listTypeInitIterator</code>，通过迭代器先查找插入位置，调用<code>ziplistInsert</code></td>
+<td style="text-align:right">先通过迭代器查找插入位置，调用<code>listInsertNode</code></td>
+</tr>
+<tr>
+<td style="text-align:center"><code>LRANGE</code></td>
+<td style="text-align:right">调用<code>ziplistGet</code>和<code>ziplistNext</code>遍历</td>
+<td style="text-align:right">遍历next</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>LREM</code></td>
+<td style="text-align:right">通过迭代器遍历<code>listTypeNext</code>，比较<code>listTypeEqual</code>和删除<code>listTypeDelete</code>（<code>ziplistDelete</code>）</td>
+<td style="text-align:right">同（<code>listDelNode</code>）</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>LSET</code></td>
+<td style="text-align:right">查找<code>ziplistIndex</code>，删除<code>ziplistDelete</code>，插入<code>ziplistInsert</code></td>
+<td style="text-align:right">查找<code>listIndex</code>，删除旧对象，指向新对象</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>LTRIM</code></td>
+<td style="text-align:right">调用<code>ziplistDeleteRange</code>两次，删除左端元素和右端元素</td>
+<td style="text-align:right">遍历两次调用<code>listDelNode</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="哈希对象"><a href="#哈希对象" class="headerlink" title="哈希对象"></a>哈希对象</h3><p>哈希对象的编码可以是<code>ziplist</code>或<code>hashtable</code>。用<code>ziplist</code>保存哈希对象时，会将包含键的节点和值的节点依次加入表尾，所以哈希的键值对总是紧挨在一起存在压缩列表中。用字典保存哈希对象时，键值对的键和值都是以对象的形式保存在<code>dictEntry</code>中。</p>
+<h4 id="编码转换-1"><a href="#编码转换-1" class="headerlink" title="编码转换"></a>编码转换</h4><p>当哈希对象满足以下两个条件时，使用<code>ziplist</code>编码，否则会转换成<code>hashtable</code>编码（<code>hashTypeTryConversion</code>）：</p>
+<ul>
+<li>保存的所有键值对的长度小于64字节（<code>hash_max_ziplist_value</code>）</li>
+<li>保存键值对数量小于512个（<code>hash_max_ziplist_entries</code>）</li>
+</ul>
+<h4 id="哈希命令的实现"><a href="#哈希命令的实现" class="headerlink" title="哈希命令的实现"></a>哈希命令的实现</h4><p>针对哈希对象的命令可参见<a href="https://redis.io/commands#hash" target="_blank" rel="external">redis commands</a>，下表给出了各个命令在不同编码下的实现(<a href="https://github.com/huangz1990/redis-3.0-annotated/blob/unstable/src/t_hash.c" target="_blank" rel="external">t_hash.c</a>)：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">命令</th>
+<th style="text-align:right"><code>ziplist</code>编码</th>
+<th style="text-align:right"><code>hashtable</code>编码</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center"><code>HSET</code>/<code>HMSET</code></td>
+<td style="text-align:right">查找<code>ziplistFind</code>，找到的话删除旧值<code>ziplistDelete</code>，插入新值<code>ziplistInsert</code>，找不到的话添加键和值对象到尾部<code>ziplistPush</code></td>
+<td style="text-align:right">调用<code>dictReplace</code>替换或者添加</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>HSETNX</code></td>
+<td style="text-align:right"><code>HEXISTS</code> + <code>HSET</code></td>
+<td style="text-align:right">同</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>HGET</code>/<code>HEXISTS</code>/<code>HMGET</code></td>
+<td style="text-align:right">调用<code>hashTypeGetFromZiplist</code>，函数内调用<code>ziplistFind</code>查找</td>
+<td style="text-align:right">调用<code>hashTypeGetFromHashTable</code>，函数内调用<code>dictFind</code></td>
+</tr>
+<tr>
+<td style="text-align:center"><code>HGETALL</code>/<code>HKEYS</code>/<code>HVALS</code></td>
+<td style="text-align:right">实现了哈希的迭代器<code>hashTypeInitIterator</code>，通过迭代器迭代<code>hashTypeNext</code>获取</td>
+<td style="text-align:right">同</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>HDEL</code></td>
+<td style="text-align:right">查找<code>ziplistFind</code>，删除<code>ziplistDelete</code></td>
+<td style="text-align:right">调用<code>dictDelete</code></td>
+</tr>
+<tr>
+<td style="text-align:center"><code>HLEN</code></td>
+<td style="text-align:right">调用<code>ziplistLen</code></td>
+<td style="text-align:right">调用<code>dictSize</code></td>
+</tr>
+<tr>
+<td style="text-align:center"><code>HINCRBY</code>/<code>HINCRBYFLOAT</code></td>
+<td style="text-align:right">查找，转long/long double，计算完set</td>
+<td style="text-align:right">同</td>
+</tr>
+</tbody>
+</table>
+<h3 id="集合对象"><a href="#集合对象" class="headerlink" title="集合对象"></a>集合对象</h3><p>集合对象的编码可以是<code>intset</code>或<code>hashtable</code>。<code>intset</code>编码使用整数集合作为底层实现，<code>hashtable</code>编码则使用字典作为底层实现，字典的键是一个字符串对象，作为集合的元素，值则全部设置为NULL。</p>
+<h4 id="编码转换-2"><a href="#编码转换-2" class="headerlink" title="编码转换"></a>编码转换</h4><p>当集合对象满足以下两个条件时，使用<code>intset</code>编码，否则会转换成<code>hashtable</code>编码（<code>setTypeConvert</code>）：</p>
+<ul>
+<li>保存的所有元素都是整数值</li>
+<li>保存的元素数量小于512个（<code>set_max_intset_entries</code>）</li>
+</ul>
+<h4 id="集合命令的实现"><a href="#集合命令的实现" class="headerlink" title="集合命令的实现"></a>集合命令的实现</h4><p>针对集合对象的命令可参见<a href="https://redis.io/commands#set" target="_blank" rel="external">redis commands</a>，下表给出了各个命令在不同编码下的实现(<a href="https://github.com/huangz1990/redis-3.0-annotated/blob/unstable/src/t_set.c" target="_blank" rel="external">t_set.c</a>)：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">命令</th>
+<th style="text-align:right"><code>intset</code>编码</th>
+<th style="text-align:right"><code>hashtable</code>编码</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center"><code>SADD</code></td>
+<td style="text-align:right">检查<code>isObjectRepresentableAsLongLong</code>，可以的话调用<code>intsetAdd</code>，不行的话编码转换</td>
+<td style="text-align:right">调用<code>dictAdd</code></td>
+</tr>
+<tr>
+<td style="text-align:center"><code>SREM</code></td>
+<td style="text-align:right">调用<code>intsetRemove</code></td>
+<td style="text-align:right">调用<code>dictDelete</code></td>
+</tr>
+<tr>
+<td style="text-align:center"><code>SCARD</code></td>
+<td style="text-align:right">调用<code>intsetLen</code></td>
+<td style="text-align:right">调用<code>dictSize</code></td>
+</tr>
+<tr>
+<td style="text-align:center"><code>SISMEMBER</code></td>
+<td style="text-align:right">调用<code>intsetFind</code></td>
+<td style="text-align:right">调用<code>dictFind</code></td>
+</tr>
+<tr>
+<td style="text-align:center"><code>SMEMBERS</code></td>
+<td style="text-align:right">实现了集合的迭代器<code>setTypeIterator</code>，通过迭代器迭代获取<code>setTypeNext</code>(<code>intsetGet</code>)</td>
+<td style="text-align:right">同（<code>dictNext</code>）</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>SRANDMEMBER</code>/<code>SPOP</code></td>
+<td style="text-align:right">调用<code>intsetRandom</code></td>
+<td style="text-align:right">调用<code>dictGetRandomKey</code></td>
+</tr>
+<tr>
+<td style="text-align:center"><code>SMOVE</code></td>
+<td style="text-align:right"><code>SREM</code> + <code>SADD</code></td>
+<td style="text-align:right">同</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>SDIFF</code>/<code>SDIFFSTORE</code>/<code>SUNION</code>/<code>SUNIONSTORE</code></td>
+<td style="text-align:right">调用<code>sunionDiffGenericCommand</code>，通过迭代器访问所有元素，union插入所有到结果集，diff两种算法：1. 遍历set[0]里的元素，比较这个元素是否在其他集合中再添加到结果集 2. 添加set[0]所有元素到结果集，遍历其他集合元素，挨个删除结果集</td>
+<td style="text-align:right">同</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>SINTER</code>/<code>SINTERSTORE</code></td>
+<td style="text-align:right">按集合大小排序，遍历最小集合，看元素是否存在其他集合中，都存在加到结果集</td>
+<td style="text-align:right">同</td>
+</tr>
+</tbody>
+</table>
+<h3 id="有序集合对象"><a href="#有序集合对象" class="headerlink" title="有序集合对象"></a>有序集合对象</h3><p>有序集合对象的编码可以是<code>ziplist</code>或<code>skiplist</code>。<code>ziplist</code>编码使用压缩列表作为底层实现，每个集合元素使用两个紧挨在一起的节点保存，第一个是<code>member</code>，第二个是<code>score</code>，元素按照分值从小到大保存。<code>skiplist</code>编码则使用<code>zset</code>结构作为底层实现，<code>zset</code>结构同时包含一个字典和一个跳表。如下：<br><figure class="highlight c"><figcaption><span>redis.h/zset</span><a href="https://github.com/huangz1990/redis-3.0-annotated/blob/unstable/src/redis.h" target="_blank" rel="external">link</a></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> zset &#123;</div><div class="line"></div><div class="line">    <span class="comment">// 字典，键为成员，值为分值</span></div><div class="line">    <span class="comment">// 用于支持 O(1) 复杂度的按成员取分值操作</span></div><div class="line">    dict *dict;</div><div class="line"></div><div class="line">    <span class="comment">// 跳跃表，按分值排序成员</span></div><div class="line">    <span class="comment">// 用于支持平均复杂度为 O(log N) 的按分值定位成员操作</span></div><div class="line">    <span class="comment">// 以及范围操作</span></div><div class="line">    zskiplist *zsl;</div><div class="line"></div><div class="line">&#125; zset;</div></pre></td></tr></table></figure><br><code>zset</code>通过dict可以在O(1)复杂度的情况下获取成员的分值（<code>ZSCORE</code>)，通过跳表可以在平均复杂度为 O(log N) 的情况下按分值定位成员（<code>ZRANGE</code>，<code>ZRANK</code>等）。所有元素并非保存两份在dict和跳表中，而是通过共享元素的成员和分值，不会造成内存浪费。</p>
+<h4 id="编码转换-3"><a href="#编码转换-3" class="headerlink" title="编码转换"></a>编码转换</h4><p>当有序集合对象满足以下两个条件时，使用<code>ziplist</code>编码，否则会转换成<code>skiplist</code>编码（<code>zsetConvert</code>相互转换）：</p>
+<ul>
+<li>保存的所有元素长度小于64字节（<code>zset_max_ziplist_value</code>)</li>
+<li>保存的元素数量小于128个（<code>zset_max_ziplist_entries</code>）</li>
+</ul>
+<h4 id="有序集合命令的实现"><a href="#有序集合命令的实现" class="headerlink" title="有序集合命令的实现"></a>有序集合命令的实现</h4><p>针对有序集合对象的命令可参见<a href="https://redis.io/commands#sorted_set" target="_blank" rel="external">redis commands</a>，下表给出了各个命令在不同编码下的实现(<a href="https://github.com/huangz1990/redis-3.0-annotated/blob/unstable/src/t_zset.c" target="_blank" rel="external">t_zset.c</a>)：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">命令</th>
+<th style="text-align:right"><code>ziplist</code>编码</th>
+<th style="text-align:right"><code>skiplist</code>编码</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center"><code>ZADD</code></td>
+<td style="text-align:right">集合不存在创建<code>createZsetZiplistObject</code>，查找<code>zzlFind</code>，存在先删除<code>zzlDelete</code>，插入<code>zzlInsert</code></td>
+<td style="text-align:right">不存在创建<code>createZsetObject</code>，查找<code>dictFind</code>，存在先删除跳表中元素<code>zslDelete</code>，插入<code>zslInsert</code>，更新字典值（存在更新指针，不存在添加<code>dictAdd</code>）</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>ZREM</code></td>
+<td style="text-align:right">查找<code>zzlFind</code>，删除<code>zzlDelete</code></td>
+<td style="text-align:right">查找<code>dictFind</code>，删除<code>zslDelete</code>+<code>dictDelete</code></td>
+</tr>
+<tr>
+<td style="text-align:center"><code>ZCARD</code></td>
+<td style="text-align:right">调用<code>zzlLength</code>（<code>ziplistLen</code>/2)</td>
+<td style="text-align:right">返回skiplist的length属性</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>ZCOUNT</code></td>
+<td style="text-align:right">调用<code>zzlFirstInRange</code>获取范围内第一个元素，往后遍历<code>zzlNext</code>，超过范围跳出</td>
+<td style="text-align:right">调用<code>zslFirstInRange</code>获取范围内第一个元素和最后一个元素，<code>zslGetRank</code>获取首尾rank相减+1</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>ZRANK</code>/<code>ZREVRANK</code></td>
+<td style="text-align:right">从前往后遍历<code>zzlNext</code>，比较直到相同<code>ziplistCompare</code>（刚开始对这个函数理解有误，还以为是个bug）</td>
+<td style="text-align:right">从字典获取score，调用<code>zslGetRank</code>得到rank</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>ZSCORE</code></td>
+<td style="text-align:right">调用<code>zzlFind</code></td>
+<td style="text-align:right">调用<code>dictFind</code></td>
+</tr>
+<tr>
+<td style="text-align:center"><code>ZRANGE</code>/<code>ZREVRANGE</code></td>
+<td style="text-align:right">调用<code>ziplistIndex</code>定位到start位置元素，根据方向遍历<code>zzlPrev</code>或<code>zzlNext</code></td>
+<td style="text-align:right">调用<code>zslGetElementByRank</code>定位到start位置元素，根据方向遍历（backward/forward）</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>ZLEXCOUNT</code></td>
+<td style="text-align:right">调用<code>zslParseLexRange</code>parse range，调用<code>zzlFirstInLexRange</code>定位到开始位置，迭代<code>zzlNext</code>和判断<code>zzlLexValueLteMax</code>是否超出</td>
+<td style="text-align:right">调用<code>zslParseLexRange</code>parse range，调用<code>zslFirstInLexRange</code>定位到开始位置，<code>zslLastInLexRange</code>定位到结束位置，调用<code>zslGetRank</code>获取两位置rank，相减</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>ZRANGEBYLEX</code>/<code>ZREVRANGEBYLEX</code></td>
+<td style="text-align:right">和<code>ZLEXCOUNT</code>类似</td>
+<td style="text-align:right">调用<code>zslParseLexRange</code>parse range，调用<code>zslFirstInLexRange</code>定位到开始位置，根据方向遍历和判断（<code>zslLexValueGteMin</code>/<code>zslLexValueLteMax</code>)</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>ZRANGEBYSCORE</code>/<code>ZREVRANGEBYSCORE</code></td>
+<td style="text-align:right">调用<code>zslParseRange</code>parse range, 根据迭代方向定位开始位置<code>zzlFirstInRange</code>/<code>zzlLastInRange</code>，迭代<code>zzlPrev</code>/<code>zzlNext</code>和判断<code>zslValueGteMin</code>/<code>zslValueLteMax</code></td>
+<td style="text-align:right">调用<code>zslParseRange</code>parse range, 根据迭代方向定位开始位置<code>zslFirstInRange</code>/<code>zslLastInRange</code>，迭代和判断<code>zslValueGteMin</code>/<code>zslValueLteMax</code></td>
+</tr>
+<tr>
+<td style="text-align:center"><code>ZREMRANGEBYLEX</code>/<code>ZREMRANGEBYRANK</code>/<code>ZREMRANGEBYSCORE</code></td>
+<td style="text-align:right">parse range，删除<code>zzlDeleteRangeByRank</code>/<code>zzlDeleteRangeByScore</code>/<code>zzlDeleteRangeByLex</code></td>
+<td style="text-align:right">parse range，删除<code>zslDeleteRangeByRank</code>/<code>zslDeleteRangeByScore</code>/<code>zslDeleteRangeByLex</code></td>
+</tr>
+<tr>
+<td style="text-align:center"><code>ZUNIONSTORE</code>/<code>ZINTERSTORE</code></td>
+<td style="text-align:right">实现了有序集合的迭代器<code>zuiInitIterator</code>，按集合大小排序，union迭代遍历<code>zuiNext</code>所有集合，插入，保存为<code>skiplist</code>编码；inter迭代遍历<code>zuiNext</code>src[0]，判断元素是否存在其他集合，计算插入，保存为<code>skiplist</code>编码</td>
+<td style="text-align:right">同</td>
+</tr>
+</tbody>
+</table>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;前面7章介绍了redis在底层用到的所有数据结构：&lt;code&gt;SDS&lt;/code&gt;，&lt;code&gt;双端链表&lt;/code&gt;，&lt;code&gt;字典&lt;/code&gt;，&lt;code&gt;skiplist&lt;/code&gt;，&lt;code&gt;整数集合&lt;/code&gt;，&lt;code&gt;ziplist&lt;/code&gt;。redis没有直接使用这些数据结构来实现键值对数据库，而是基于这些数据结构实现了一个对象系统，包括以下五种类型：&lt;code&gt;字符串对象&lt;/code&gt;，&lt;code&gt;列表对象&lt;/code&gt;，&lt;code&gt;哈希对象&lt;/code&gt;，&lt;code&gt;集合对象&lt;/code&gt;和&lt;code&gt;有序集合对象&lt;/code&gt;。每种对象系统使用了至少一种前面的数据结构。对象系统带给redis的好处主要有以下几个方面：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;通过这五种不同类型的对象，redis在执行不同命令的时候可以对对象的类型进行检查，看该命令是否可以执行&lt;/li&gt;
+&lt;li&gt;在不同的应用场景中，同一类对象可以针对不同的应用场景选择不同的数据结构实现，优化使用效率&lt;/li&gt;
+&lt;li&gt;对象系统实现了基于引用技术的内存回收机制，对不再使用的对象进行回收。另外，通过引用技术可以实现对象共享机制，在适当的条件下达到对象共享，节约内存&lt;/li&gt;
+&lt;li&gt;对象带有访问时间记录，可以计算数据库键的空转时长，在服务器启用&lt;code&gt;maxmemory&lt;/code&gt;功能时来确定删除优先级&lt;/li&gt;
+&lt;/ul&gt;
+    
+    </summary>
+    
+      <category term="Redis设计与实现笔记" scheme="http:zhangpin.info/categories/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0%E7%AC%94%E8%AE%B0/"/>
+    
+    
+      <category term="redis" scheme="http:zhangpin.info/tags/redis/"/>
+    
+      <category term="笔记" scheme="http:zhangpin.info/tags/%E7%AC%94%E8%AE%B0/"/>
+    
+      <category term="源码" scheme="http:zhangpin.info/tags/%E6%BA%90%E7%A0%81/"/>
+    
+      <category term="对象" scheme="http:zhangpin.info/tags/%E5%AF%B9%E8%B1%A1/"/>
+    
+  </entry>
+  
+  <entry>
     <title>Redis设计与实现笔记-章7.压缩列表</title>
     <link href="http:zhangpin.info/2017/02/04/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0%E7%AC%94%E8%AE%B0-%E7%AB%A07-%E5%8E%8B%E7%BC%A9%E5%88%97%E8%A1%A8/"/>
     <id>http:zhangpin.info/2017/02/04/Redis设计与实现笔记-章7-压缩列表/</id>
     <published>2017-02-04T04:25:07.000Z</published>
-    <updated>2017-02-04T09:54:05.000Z</updated>
+    <updated>2017-02-06T06:29:25.000Z</updated>
     
     <content type="html"><![CDATA[<p>压缩列表（ziplist）是哈希键和列表键的底层实现之一（当一个列表键只包含少量元素，不超过<code>list_max_ziplist_entries</code>的配置，并且元素要么是小整数或短字符串时），是为了节约内存，由一系列特殊编码的连续内存块组成的顺序型数据结构。一个压缩列表可以包含任意多个节点（<code>entry</code>），每个节点可以保存一个字符数组或一个整数值。</p>
 <a id="more"></a>
 <h3 id="压缩列表的定义"><a href="#压缩列表的定义" class="headerlink" title="压缩列表的定义"></a>压缩列表的定义</h3><h4 id="ziplist结构"><a href="#ziplist结构" class="headerlink" title="ziplist结构"></a>ziplist结构</h4><p>ziplist的整体布局如下：</p>
-<p><center><strong>| zlbytes | zltail | zllen | entry1 | entry2 |entry3 | … | entryN | zlend |</strong></center><br>不同组成部分的类型和用途如下：</p>
+<p><center><br>| zlbytes | zltail | zllen | entry1 | entry2 |entry3 | … | entryN | zlend |<br>|:——-:|:——:|:—–:|:——:|:——:|:—–:|:—:|:——:|:—–:|<br></center><br>不同组成部分的类型和用途如下：</p>
 <ul>
 <li><code>zlbytes</code>: uint32_t类型，占4字节，记录整个ziplist占用字节数，在对ziplist进行内存重分配或定位<code>zlend</code>时使用</li>
 <li><code>zltail</code>: uint32_t类型，占4字节，记录尾节点距离ziplist起始地址的距离，即偏移量，用于定位尾节点位置</li>
