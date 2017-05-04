@@ -144,9 +144,9 @@ Explanation:
     
       <category term="算法" scheme="http:zhangpin.info/tags/%E7%AE%97%E6%B3%95/"/>
     
-      <category term="字符串" scheme="http:zhangpin.info/tags/%E5%AD%97%E7%AC%A6%E4%B8%B2/"/>
-    
       <category term="dp" scheme="http:zhangpin.info/tags/dp/"/>
+    
+      <category term="字符串" scheme="http:zhangpin.info/tags/%E5%AD%97%E7%AC%A6%E4%B8%B2/"/>
     
   </entry>
   
@@ -1252,13 +1252,13 @@ Explanation:
       <category term="Redis设计与实现笔记" scheme="http:zhangpin.info/categories/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0%E7%AC%94%E8%AE%B0/"/>
     
     
+      <category term="字符串" scheme="http:zhangpin.info/tags/%E5%AD%97%E7%AC%A6%E4%B8%B2/"/>
+    
       <category term="redis" scheme="http:zhangpin.info/tags/redis/"/>
     
       <category term="笔记" scheme="http:zhangpin.info/tags/%E7%AC%94%E8%AE%B0/"/>
     
       <category term="源码" scheme="http:zhangpin.info/tags/%E6%BA%90%E7%A0%81/"/>
-    
-      <category term="字符串" scheme="http:zhangpin.info/tags/%E5%AD%97%E7%AC%A6%E4%B8%B2/"/>
     
   </entry>
   
