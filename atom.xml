@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http:zhangpin.info/"/>
-  <updated>2017-02-15T04:02:17.000Z</updated>
+  <updated>2017-05-17T07:38:40.000Z</updated>
   <id>http:zhangpin.info/</id>
   
   <author>
@@ -14,6 +14,87 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>Docker+Ubuntu+jpeg-turbo编译opencv3</title>
+    <link href="http:zhangpin.info/2017/05/17/Docker-Ubuntu-jpeg-turbo%E7%BC%96%E8%AF%91opencv3/"/>
+    <id>http:zhangpin.info/2017/05/17/Docker-Ubuntu-jpeg-turbo编译opencv3/</id>
+    <published>2017-05-17T07:07:08.000Z</published>
+    <updated>2017-05-17T07:38:40.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>利用docker构建标准的编译环境<br><a id="more"></a></p>
+<h3 id="install-docker"><a href="#install-docker" class="headerlink" title="install docker"></a>install docker</h3><p>docker安装很简单，直接<a href="https://www.docker.com/" target="_blank" rel="external">官网</a>下载安装即可。</p>
+<h3 id="pull-ubuntu14-04-image"><a href="#pull-ubuntu14-04-image" class="headerlink" title="pull ubuntu14.04 image"></a>pull ubuntu14.04 image</h3><pre><code>$ docker pull ubuntu:14.04
+</code></pre><h3 id="run-container"><a href="#run-container" class="headerlink" title="run container"></a>run container</h3><pre><code>$ docker run --rm -it -v $PWD:/build ubuntu:14.04
+</code></pre><h3 id="install"><a href="#install" class="headerlink" title="install"></a>install</h3><h4 id="install-build-essential"><a href="#install-build-essential" class="headerlink" title="install build-essential"></a>install build-essential</h4><pre><code>$ sudo apt-get update
+$ sudo apt-get upgrade
+$ sudo apt-get install build-essential
+</code></pre><h4 id="install-libjpeg-turbo-1-5-1"><a href="#install-libjpeg-turbo-1-5-1" class="headerlink" title="install libjpeg-turbo-1.5.1"></a>install libjpeg-turbo-1.5.1</h4><pre><code>$ wget https://launchpad.net/ubuntu/+archive/primary/+files/libjpeg-turbo_1.5.1.orig.tar.gz
+$ tar xvf libjpeg-turbo_1.5.1.orig.tar.gz
+$ cd libjpeg-turbo-1.5.1/
+$ sudo apt-get install nasm
+$ sudo apt-get install dh-autoreconf
+$ autoreconf -fiv
+$ mkdir build
+$ cd build
+$ sh ../configure --prefix=/usr/libjpeg-turbo --mandir=/usr/share/man --with-jpeg8 --enable-static --docdir=/usr/share/doc/libjpeg-turbo-1.5.1
+
+# 修改Makefile，把CC: gcc改成CC: gcc -fPIC
+# &quot;-fPIC&quot; which was an abbreviation for Position Independent Code, and this had to be passed to create library code objects, without that flag, code that is specific to the source would be used, and then the library would fail.
+vi Makefile  =&gt; CC: gcc  -&gt;  CC: gcc -fPIC
+
+$ sudo make
+# test:
+    $ make test
+# install:
+    $ make install
+</code></pre><h4 id="install-opencv"><a href="#install-opencv" class="headerlink" title="install opencv"></a>install opencv</h4><pre><code>$ wget https://github.com/opencv/opencv/archive/3.2.0.zip
+$ mkdir build
+$ cd build
+
+# Dependence:
+# install cmake
+$ wget https://cmake.org/files/v3.8/cmake-3.8.1.tar.gz
+$ tar xf cmake-3.8.1.tar.gz
+$ cd cmake-3.8.1
+$ ./configure
+$ make
+$ sudo apt-get install checkinstall
+$ sudo checkinstall
+$ sudo make install
+# install others
+$ sudo apt-get install cmake git libgtk2.0-dev pkg-config libavcodec-dev libavformat-dev libswscale-dev
+$ sudo apt-get install python-dev python-numpy libtbb2 libtbb-dev libpng-dev libtiff-dev libjasper-dev libdc1394-22-dev
+
+$ cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/local -D BUILD_EXAMPLES=ON -DWITH_JPEG=ON -DBUILD_JPEG=OFF -DJPEG_INCLUDE_DIR=/usr/libjpeg-turbo/include -DJPEG_LIBRARY=/usr/libjpeg-turbo/lib/libjpeg.a ..
+#（中间出现ippicv相关包下载hash unmatch error，重新下载包，替换相应目录）
+$ sudo make
+$ sudo make install
+</code></pre><h3 id="save-image"><a href="#save-image" class="headerlink" title="save image"></a>save image</h3><pre><code>docker commit Container_ID new_image:tag
+docker save new_image:tag &gt; new_iamge.tar
+新的image在其他docker机器上load即可
+</code></pre><h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><ol>
+<li><a href="http://www.linuxfromscratch.org/blfs/view/svn/general/libjpeg.html" target="_blank" rel="external">linuxfromscratch-libjpeg-turbo</a></li>
+<li><a href="http://www.linuxfromscratch.org/blfs/view/svn/general/opencv.html" target="_blank" rel="external">linuxfromscratch-opencv3</a></li>
+<li><a href="http://cubieboard.blogspot.com/2013/02/raspbian-opencv-libjpeg-turbo.html" target="_blank" rel="external">Raspbian + OpenCV + libjpeg-turbo</a></li>
+<li><a href="http://hopkinsdev.blogspot.com/2016/06/opencv-310-optimized-for-raspberry-pi.html" target="_blank" rel="external">openCV 3.1.0 optimized for Raspberry Pi, with libjpeg-turbo 1.5.0 and NEON SIMD support</a></li>
+</ol>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;利用docker构建标准的编译环境&lt;br&gt;
+    
+    </summary>
+    
+      <category term="工作琐记" scheme="http:zhangpin.info/categories/%E5%B7%A5%E4%BD%9C%E7%90%90%E8%AE%B0/"/>
+    
+    
+      <category term="opencv3" scheme="http:zhangpin.info/tags/opencv3/"/>
+    
+      <category term="docker" scheme="http:zhangpin.info/tags/docker/"/>
+    
+  </entry>
   
   <entry>
     <title>Next Greater Element II</title>
@@ -1264,8 +1345,8 @@ Explanation:
   
   <entry>
     <title>Redis设计与实现笔记-章1.引言</title>
-    <link href="http:zhangpin.info/2017/01/04/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0%E7%AC%94%E8%AE%B0-%E7%AB%A01-%E5%BC%95%E8%A8%80/"/>
-    <id>http:zhangpin.info/2017/01/04/Redis设计与实现笔记-章1-引言/</id>
+    <link href="http:zhangpin.info/2017/01/04/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0%E7%AC%94%E8%AE%B0-%E7%AB%A01.%E5%BC%95%E8%A8%80/"/>
+    <id>http:zhangpin.info/2017/01/04/Redis设计与实现笔记-章1.引言/</id>
     <published>2017-01-04T08:57:44.000Z</published>
     <updated>2017-01-06T09:33:09.000Z</updated>
     
