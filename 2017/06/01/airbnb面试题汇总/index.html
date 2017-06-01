@@ -1,0 +1,2033 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+  <meta name="google-site-verification" content="hRF2AbAmW5pbqyzErzXQX_rPnCSS2V3q3R98KyV3npo" />
+
+
+
+
+  <meta name="baidu-site-verification" content="oV6kB8duxm" />
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="算法,面试," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="August's Box" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="前段时间面试了airbnb北京，顺便整理了下网上能搜到的面经，刷了一遍，主要是coding部分。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="airbnb面试题汇总">
+<meta property="og:url" content="http:zhangpin.info/2017/06/01/airbnb面试题汇总/index.html">
+<meta property="og:site_name" content="August's Box">
+<meta property="og:description" content="前段时间面试了airbnb北京，顺便整理了下网上能搜到的面经，刷了一遍，主要是coding部分。">
+<meta property="og:updated_time" content="2017-06-01T07:23:57.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="airbnb面试题汇总">
+<meta name="twitter:description" content="前段时间面试了airbnb北京，顺便整理了下网上能搜到的面经，刷了一遍，主要是coding部分。">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '6371266536736294000',
+      author: 'August'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http:zhangpin.info/2017/06/01/airbnb面试题汇总/"/>
+
+
+
+
+
+  <title> airbnb面试题汇总 | August's Box </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?f03d3f15b3476b44d4144b881859b05a";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">August's Box</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+    
+      <p class="site-subtitle"></p>
+    
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+  <link itemprop="mainEntityOfPage" href="http:zhangpin.info/2017/06/01/airbnb面试题汇总/">
+
+  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="August">
+    <meta itemprop="description" content="">
+    <meta itemprop="image" content="/images/avatar.gif">
+  </span>
+
+  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <meta itemprop="name" content="August's Box">
+    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+      <img style="display:none;" itemprop="url image" alt="August's Box" src="">
+    </span>
+  </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                airbnb面试题汇总
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-06-01T15:00:07+08:00">
+                2017-06-01
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/面试汇总/" itemprop="url" rel="index">
+                    <span itemprop="name">面试汇总</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2017/06/01/airbnb面试题汇总/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2017/06/01/airbnb面试题汇总/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>前段时间面试了airbnb北京，顺便整理了下网上能搜到的面经，刷了一遍，主要是coding部分。<br><a id="more"></a></p>
+<h3 id="Palindrome-Pairs"><a href="#Palindrome-Pairs" class="headerlink" title="Palindrome Pairs"></a>Palindrome Pairs</h3><p>warm up：is_palindrome</p>
+<pre><code>bool isPalindrome（string s) {
+    int left = 0, right = s.size() - 1;
+    while (left &lt; right) {
+        if (s[left++] != s[right--]) return false;
+    }
+    return true;
+}
+</code></pre><p>给定一个字符串数组，找出所有的字符串对，该字符串对拼接起来是回文字符串（<a href="https://leetcode.com/problems/palindrome-pairs/?tab=Description）" target="_blank" rel="external">https://leetcode.com/problems/palindrome-pairs/?tab=Description）</a></p>
+<pre><code>#include &lt;iostream&gt;
+#include &lt;unordered_map&gt;
+#include &lt;set&gt;
+#include &lt;vector&gt;
+using namespace std;
+
+bool isPalindrome(string word, int left, int right) {
+    while (left &lt; right)
+        if(word[left++] != word[right--]) return false;
+    return true;
+}
+   vector&lt;vector&lt;int&gt; &gt; palindromePairs(vector&lt;string&gt;&amp; words) {
+    unordered_map&lt;string, int&gt; idx;
+    set&lt;int&gt; st;
+    vector&lt;vector&lt;int&gt; &gt; ans;
+    for (int i = 0; i &lt; words.size(); ++i) {
+        idx[words[i]] = i;
+        st.insert(words[i].length());
+    }
+    for (int i = 0 ; i &lt; words.size(); ++i) {
+        string tmp = words[i];
+        int len = tmp.length();
+        reverse(tmp.begin(), tmp.end());
+        if (idx.count(tmp) &amp;&amp; idx[tmp] != i)
+            ans.push_back({i, idx[tmp]});
+        auto end = st.find(len);
+        for (auto it = st.begin(); it != end; ++it) {
+            if (idx.count(tmp.substr(len - *it)) &amp;&amp; isPalindrome(tmp, 0, len - *it - 1))
+                ans.push_back({i, idx[tmp.substr(len - *it)]});
+            if (idx.count(tmp.substr(0, *it)) &amp;&amp; isPalindrome(tmp, *it, len - 1))
+                ans.push_back({idx[tmp.substr(0, *it)], i});
+        }
+    }
+    return ans;
+}
+int main() {
+    vector&lt;string&gt; words = {&quot;bat&quot;, &quot;tab&quot;, &quot;cat&quot;};
+    auto ans = palindromePairs(words);
+    for (auto pr : ans) {
+        cout &lt;&lt; pr[0] &lt;&lt; &quot; &quot;&lt;&lt; pr[1] &lt;&lt;endl;
+    }
+    return 0;
+}
+</code></pre><h3 id="Round-numbers"><a href="#Round-numbers" class="headerlink" title="Round numbers"></a>Round numbers</h3><p>When you book on airbnb the total price is:</p>
+<p>Total price = base price + service fee + cleaning fee + …</p>
+<pre><code>input : array of decimals ~ X
+output : array of int ~ Y
+</code></pre><p>But they need to satisfy the condition:</p>
+<pre><code>sum(Y) = round(sum(x))
+minmize (|y1-x1| + |y2-x2| + ... + |yn-xn|)
+Example1:
+input = 30.3, 2.4, 3.5
+output = 30 2 4
+
+Example2:
+input = 30.9, 2.4, 3.9
+output = 31 2 4
+</code></pre><p>先将所有floor(x)加起来统计出如果所有都floor的话还差多少，按照ceil以后需要加的价格排序，贪心取最小的补齐即可。代码如下：</p>
+<pre><code># python
+def roundNum(self, input):
+    output = map(lambda x: floor(x), input)
+    remain = int(round(sum(input)) - sum(output))
+    it = sorted(enumerate(input), key=lambda x: x[1] - floor(x[1]))
+    for _ in xrange(remain):
+        output[it.pop()[0]] += 1
+    return output
+
+//c++
+vector&lt;int&gt; roundNumber(vector&lt;double&gt;&amp; prices) {
+    vector&lt;int&gt; ans;
+    int got = 0;
+    double all = 0.0;
+    vector&lt;pair&lt;double, int&gt; &gt; s_prices;
+    for (int i = 0; i &lt; prices.size(); ++i) {
+        double price = prices[i];
+        int tmp = int(floor(price));
+        got += tmp;
+        ans.push_back(tmp);
+        all += price;
+        s_prices.push_back(make_pair(price, i));
+    }
+    sort (s_prices.begin(), s_prices.end(),
+         [](pair&lt;double, int&gt; a, pair&lt;double, int&gt; b)
+         { return a.first - floor(a.first) &gt; b.first - floor(b.first);});
+    for (int i = 0; i &lt; int(round(all)) - got; ++i) {
+        ans[s_prices[i].second]++;
+    }
+    return ans;
+}
+</code></pre><h3 id="2D-itertaor-remove"><a href="#2D-itertaor-remove" class="headerlink" title="2D itertaor + remove()"></a>2D itertaor + remove()</h3><p>leetcode 251（<a href="https://leetcode.com/problems/flatten-2d-vector）" target="_blank" rel="external">https://leetcode.com/problems/flatten-2d-vector）</a><br>实现二维数组的迭代器，加上remove操作。代码如下：</p>
+<pre><code>class Vector2D {
+private:
+    vector&lt;vector&lt;int&gt; &gt;::iterator row, iBegin, iEnd;
+    vector&lt;int&gt;::iterator col;
+public:
+    Vector2D(vector&lt;vector&lt;int&gt; &gt; &amp;nums) {
+    row = nums.begin();
+    iBegin = nums.begin();
+    iEnd = nums.end();
+    if (!nums.empty()) col = row-&gt;begin();
+    }
+    int next() {
+        if (hasNext()) {
+           int val = *col;
+           col++;
+           return val;
+       }
+       throw &quot;It&apos;s empty already!&quot;;
+    }
+    bool hasNext() {
+        while (row != iEnd &amp;&amp; col == row-&gt;end()) {
+            ++row;
+            if(row != iEnd)
+                col = row-&gt;begin();
+        }
+        return row != iEnd;
+    }
+    void remove() {
+        if (col == row-&gt;begin()) {
+            auto pre = prev(row);
+            while (pre != iBegin &amp;&amp; (*pre).empty())
+                pre = prev(pre);
+            if (!(*pre).empty()) {
+                (*pre).erase(prev((*pre).end()));
+            } else {
+                throw &quot;Should call next() first!&quot;;
+            }
+        } else {
+            (*row).erase(prev(col));
+            col--;
+        }
+    }
+};
+</code></pre><h3 id="ip2cidr"><a href="#ip2cidr" class="headerlink" title="ip2cidr"></a>ip2cidr</h3><p>给出一个ipv4的range，找出最少的cidr可以覆盖这个range内的所有ip。</p>
+<p>参考：<br>背景介绍<a href="https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing" target="_blank" rel="external">https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing</a><br>这个是个online转化工具<a href="http://www.ipaddressguide.com/cidr" target="_blank" rel="external">http://www.ipaddressguide.com/cidr</a><br>大概的思路是group as much IPs as you can.<br>描述起来还真的麻烦呢，建议跑几个case，就理解了 </p>
+<p>code: <a href="http://stackoverflow.com/questions/33443914/how-to-convert-ip-address-range-to-cidr-in-java" target="_blank" rel="external">http://stackoverflow.com/questions/33443914/how-to-convert-ip-address-range-to-cidr-in-java</a></p>
+<p>解释： ——代表end-start能覆盖到的二进制位</p>
+<p>start：xxxxxxx100000</p>
+<p>end：  xxxxxx——-这种情况下，先找出可以覆盖住xxxxxxx100000~xxxxxxx111111的cidr，start变为xxxxxxx100000 + 100000</p>
+<p>end：  xxxxxxxxx—-这种情况下，先找出可以覆盖住xxxxxxx100000~xxxxxxx101111的cidr，start变为xxxxxxx100000 + 10000</p>
+<pre><code>def ipToVal(ip):
+    ip = ip.split(&quot;.&quot;)
+    val = 0
+    for x in ip:
+        val = (val &lt;&lt; 8) + int(x)
+    return val
+
+
+def ValToIp(val):
+    ip, i = [&quot;0&quot;] * 4, 3
+    while val:
+        ip[i] = str(val % (1 &lt;&lt; 8))
+        val /= (1 &lt;&lt; 8)
+        i -= 1
+    return &quot;.&quot;.join(ip)
+
+
+def range2cidr(start, end):
+    if not start or not end or start.count(&apos;.&apos;) != 3 or end.count(&apos;.&apos;) != 3:
+        return None
+    start, end = ipToVal(start), ipToVal(end)
+    if start &gt; end:
+        return None
+    ans = []
+    while start &lt;= end:
+        firstOne = start &amp; (-start)
+        maxMask = 32 - int(log(firstOne, 2))
+        maxDiff = 32 - int(floor(log(end - start + 1, 2)))
+        maxMask = max(maxMask, maxDiff)
+        ip = ValToIp(start)
+        ans.append(ip + &quot;/&quot; + str(maxMask))
+        start += 2 ** (32 - maxMask)
+    return ans
+
+//C++
+long ipToVal(string ip) {
+    long val = 0;
+    int i = 0;
+    for (int j = 0; i &lt; 4 &amp;&amp; j &lt; ip.length(); ++i) {
+        auto nx = ip.find(&apos;.&apos;, j);
+        if (nx == ip.npos) {
+            val = (val &lt;&lt; 8) + atoi(ip.substr(j).c_str());
+            ++i;
+            break;
+        }
+        val = (val &lt;&lt; 8) + atoi(ip.substr(j, nx - j).c_str());
+        j = nx + 1;
+    }
+    if (i != 4) throw &quot;The ip is incorrect&quot;;
+    return val;
+}
+
+string valToIp(long val) {
+    string ip = &quot;&quot;;
+    for (int i = 0; i &lt; 4; ++i) {
+        ip = to_string(val % 256) + &quot;.&quot; + ip;
+        val /= 256;
+    }
+    ip.pop_back();
+    return ip;
+}
+
+
+vector&lt;string&gt; range2cidr(string start, string end) {
+    // try...catch
+    long st = ipToVal(start), ed = ipToVal(end);
+    vector&lt;string&gt; ans;
+    while (st &lt;= ed) {
+        int lastOne = st &amp; (-st);
+        int maxMask = 32 - int((log(lastOne)/log(2)));
+        int maxDiff = 32 - int(floor(log(ed - st + 1)/log(2)));
+        maxMask = max(maxMask, maxDiff);
+        string ip = valToIp(st);
+        ans.push_back(ip + &quot;/&quot; + to_string(maxMask));
+        st += int(pow(2, 32 - maxMask));
+    }
+    return ans;
+}
+</code></pre><h3 id="Display-Page-list"><a href="#Display-Page-list" class="headerlink" title="Display Page list"></a>Display Page list</h3><p>用一个set来保存是否出现，加入以后删除原有元素，不够的话顺序补充</p>
+<pre><code>vector&lt;vector&lt;string&gt; &gt; paging(vector&lt;string&gt; items, int size) {
+    vector&lt;vector&lt;string&gt; &gt; ans;
+    const int n = items.size();
+    for (int i = 0; i &lt;= (n - 1) / size; ++i) {
+        vector&lt;string&gt; tmp;
+        unordered_set&lt;string&gt; st;
+        for (auto it = items.begin(); it != items.end() &amp;&amp; tmp.size() &lt; size;) {
+            if (st.count(*it)) {
+                ++it;
+                continue;
+            }
+            st.insert(*it);
+            tmp.push_back(*it);
+            items.erase(it);
+        }
+        for (auto it = items.begin(); it != items.end() &amp;&amp; tmp.size() &lt; size;) {
+            tmp.push_back(*it);
+            items.erase(it);
+        }
+        ans.push_back(tmp);
+    }
+    return ans;
+}
+</code></pre><h3 id="menu-order"><a href="#menu-order" class="headerlink" title="menu order"></a>menu order</h3><p>点菜，菜价格为double，问如何正好花完手里的钱<br>解法：把菜单价格*100转成整数，题目转换成leetcode 40.Combination Sum II（<a href="https://leetcode.com/problems/combination-sum-ii/?tab=Description）" target="_blank" rel="external">https://leetcode.com/problems/combination-sum-ii/?tab=Description）</a></p>
+<pre><code>void helper(vector&lt;int&gt; &amp;dish, vector&lt;vector&lt;double&gt; &gt; &amp;ans, vector&lt;double&gt; &amp;cur, int idx, int money) {
+    if (money == 0) {
+        ans.push_back(cur);
+        return;
+    }
+    if (idx == dish.size() || money &lt; 0 || money &lt; dish[idx])
+        return;
+    int cnt = 1;
+    while (cnt * dish[idx] &lt;= money) {
+        cur.push_back(dish[idx] / 100.0);
+        helper(dish, ans, cur, idx + 1, money - cnt * dish[idx]);
+        ++cnt;
+    }
+    while (--cnt) cur.pop_back();
+    helper(dish, ans, cur, idx + 1, money);
+}
+
+vector&lt;vector&lt;double&gt; &gt; menuOrder(vector&lt;double&gt;&amp; dish, double money) {
+    vector&lt;int&gt; tmp;
+    vector&lt;vector&lt;double&gt; &gt; ans;
+    vector&lt;double&gt; cur;
+    for (auto d : dish)
+        tmp.push_back(int(d * 100));
+    sort(tmp.begin(), tmp.end());
+    helper(tmp, ans, cur, 0, int(money * 100));
+    return ans;
+}
+</code></pre><h3 id="Hilbert-Curve"><a href="#Hilbert-Curve" class="headerlink" title="Hilbert Curve"></a>Hilbert Curve</h3><p>Hilbert Curve（<a href="http://bit-player.org/extras/hilbert/hilbert-construction.html）" target="_blank" rel="external">http://bit-player.org/extras/hilbert/hilbert-construction.html）</a><br>Hilbert曲线可以无限阶下去，从1阶开始，落在一个矩阵里，让你写个function，三个参数（x,y,阶数），return 这个点（x,y）是在这阶curve里从原点出发的第几步</p>
+<pre><code>int hilbertCurve(int x, int y, int iter) {
+    if (iter == 0) return 1;
+    int areaCnt = (1 &lt;&lt; (iter * 2 - 2)); // 每一块区域边长的边界值
+    int borderLen = (1 &lt;&lt; (iter - 1)); // 区域移动的长度
+
+    if (x &gt;= borderLen &amp;&amp; y &gt;= borderLen) //右上角区域 = 前一阶往右上角移动borderLen
+        return areaCnt * 2 + hilbertCurve(x - borderLen, y - borderLen, iter - 1);
+    else if (x &lt; borderLen &amp;&amp; y &gt;= borderLen) //左上角区域 = 前一阶往上移动borderLen
+        return areaCnt + hilbertCurve(x, y - borderLen, iter - 1);
+    else if (x &lt; borderLen &amp;&amp; y &lt; borderLen) //右下角区域 = 前一阶按照y=x对称
+        return hilbertCurve(y, x, iter - 1);
+    else //右下角区域 = 前一阶按照y=-x对称，然后右移2*borderLen - 1，上移borderLen - 1
+    // 设原来坐标(a,b) =&gt; (-b, -a) =&gt; (2*borderLen - 1 - b, borderLen - 1 - a) = (x, y)
+    // =&gt; a = borderLen - 1 - y, b = 2*borderLen - 1 - x
+        return areaCnt * 3 + hilbertCurve(borderLen - 1 - y, 2 * borderLen - 1 - x, iter - 1);
+}
+</code></pre><h3 id="Alien-Dictionary"><a href="#Alien-Dictionary" class="headerlink" title="Alien Dictionary"></a>Alien Dictionary</h3><p>leetcode 269</p>
+<pre><code>string alienOrder(vector&lt;string&gt; &amp;words) {
+    unordered_map&lt;char, unordered_set&lt;char&gt; &gt; mp;
+    unordered_map&lt;char, int&gt; idx;
+    unordered_set&lt;char&gt; st;
+    queue&lt;char&gt; q;
+    string ans = &quot;&quot;;
+    for (auto word : words) st.insert(word.begin(), word.end());
+    for (int i = 0; i &lt; words.size() - 1; ++i) {
+        int j = 0, end = min(words[i].size(), words[i + 1].size());
+        for (; j &lt; end; ++j) {
+            if (words[i][j] == words[i + 1][j]) continue;
+            mp[words[i][j]].insert(words[i + 1][j]);
+            break;
+        }
+        if (j == end &amp;&amp; words[i].size() &gt; words[i + 1].size())
+            return ans;
+    }
+    for (auto m : mp) {
+        for (auto s : m.second) {
+            idx[s]++;
+        }
+    }
+    for (auto s : st) {
+        if (!idx.count(s)) {
+            q.push(s);
+            ans += s;
+        }
+    }
+    while (!q.empty()) {
+        char c = q.front();
+        q.pop();
+        auto next = mp[c];
+        for (auto s : next) {
+            if (--idx[s] == 0) {
+                q.push(s);
+                ans += s;
+            }
+        }
+    }
+    return ans.size() == st.size() ? ans : &quot;&quot;;
+}
+</code></pre><h3 id="有向图-求最少的点可以遍历所有点"><a href="#有向图-求最少的点可以遍历所有点" class="headerlink" title="有向图 求最少的点可以遍历所有点"></a>有向图 求最少的点可以遍历所有点</h3><p>（<a href="https://instant.1point3acres.com/thread/201190，https://instant.1point3acres.com/thread/197716）" target="_blank" rel="external">https://instant.1point3acres.com/thread/201190，https://instant.1point3acres.com/thread/197716）</a></p>
+<p>解法，scc（strongly connected component）缩点 + 拓扑排序，太尼玛复杂了。。<br>解scc用了Kosaraju算法， 拓扑排序，代码如下：</p>
+<pre><code>void dfs(const vector&lt;vector&lt;bool&gt; &gt; &amp;edges, vector&lt;bool&gt; &amp;visited, vector&lt;unordered_set&lt;int&gt; &gt; &amp;components, int idx, int id) {
+    visited[idx] = true;
+    if (components.size() == id) components.push_back({});
+    components[id].insert(idx);
+    for (int i = 0; i &lt; edges.size(); ++i) {
+        if (edges[i][idx] &amp;&amp; !visited[i]) dfs(edges, visited, components, i, id);
+    }
+}
+
+void preDFS(const vector&lt;vector&lt;bool&gt; &gt; &amp;edges, vector&lt;bool&gt; &amp;visited, vector&lt;int&gt; &amp;orders, int idx) {
+    visited[idx] = true;
+    orders.push_back(idx);
+    for (int i = 0; i &lt; edges.size(); ++i) {
+        if (edges[idx][i] &amp;&amp; !visited[i]) preDFS(edges, visited, orders, i);
+    }
+}
+
+vector&lt;int&gt; traverse(vector&lt;vector&lt;bool&gt;&gt; &amp;edges) {
+    const auto n = edges.size();
+    vector&lt;int&gt; ans;
+    if (n == 0) return ans;
+    vector&lt;bool&gt; visited(n, false);
+    vector&lt;int&gt; orders;// 记录伪拓扑排序的顺序
+    vector&lt;unordered_set&lt;int&gt; &gt; components;//记录scc都包含哪些元素
+    int id = 0;
+    for (int i = 0; i &lt; n; ++i) {
+        if (!visited[i]) {
+            preDFS(edges, visited, orders, i);
+        }
+    }
+    fill(visited.begin(), visited.end(), false);
+    for (int i = n - 1; i &gt;= 0; --i) {
+        if (!visited[orders[i]]) {
+            dfs(edges, visited, components, orders[i], id);
+            ++id;
+        }
+    }
+
+    unordered_map&lt;int, int&gt; in;
+    unordered_map&lt;int, unordered_set&lt;int&gt; &gt; next;
+    for (int from = 0; from &lt; id; ++from) {
+        for (int to = 0; to &lt; id; ++to) {
+            if (from == to) continue;
+            bool found = false;
+            for (auto x : components[from]) {
+                if (found) break;
+                for (auto y : components[to])
+                    if (edges[x][y]) {
+                        in[to]++;
+                        next[from].insert(to);
+                        found = true;
+                        break;
+                    }
+            }
+        }
+    }
+    for (int i = 0; i &lt; id; ++i) {
+        if (in[i] == 0) {
+            ans.push_back(*components[i].begin());
+        }
+    }
+    return ans;
+}
+</code></pre><p>c++(scc + union search)</p>
+<pre><code>typedef pair&lt;int, int&gt; pr;
+typedef unordered_map&lt;int, unordered_set&lt;int&gt; &gt; connectInfo;
+void fromDFS(int node, connectInfo from, vector&lt;int&gt;&amp; order, unordered_set&lt;int&gt;&amp; visited) {
+    if(!visited.count(node)) {
+        visited.insert(node);
+        for(auto n : from[node])
+            fromDFS(n, from, order, visited);
+        order.insert(order.begin(), node);
+    }
+}
+
+void toDFS(int node, int root, connectInfo to, unordered_map&lt;int, int&gt;&amp; components) {
+    if(!components.count(node)) {
+        components[node] = root;
+        for(auto n : to[node])
+            toDFS(n, root, to, components);
+    }
+}
+
+unordered_map&lt;int, int&gt; kosasrajus(connectInfo from, connectInfo to, const unordered_set&lt;int&gt;&amp; nodes) {
+    unordered_set&lt;int&gt; visited;
+    unordered_map&lt;int, int&gt; components;
+    vector&lt;int&gt; order;
+    for(auto node : nodes)
+        fromDFS(node, from, order, visited);
+    for(auto node : order)
+        toDFS(node, node, to, components);
+    return components;
+}
+
+vector&lt;int&gt; least_nodes(const vector&lt;pr&gt;&amp; edges) {
+    connectInfo from, to;
+    unordered_set&lt;int&gt; nodes;
+    vector&lt;int&gt; ans;
+    for(auto edge : edges) {
+        from[edge.first].insert(edge.second);
+        to[edge.second].insert(edge.first);
+        nodes.insert(edge.first);
+        nodes.insert(edge.second);
+    }
+    unordered_map&lt;int, int&gt; components = kosasrajus(from, to, nodes);
+    unordered_set&lt;int&gt; fromComponents, toComponents;
+    for(auto edge : edges) {
+        fromComponents.insert(components[edge.first]);
+        if(components[edge.first] != components[edge.second]) {
+            toComponents.insert(components[edge.second]);
+        }
+    }
+    for(auto node : fromComponents)
+        if(!toComponents.count(node))
+            ans.push_back(node);
+    return ans;
+}
+</code></pre><p>python:</p>
+<pre><code>def least_nodes(edges):
+    pred = collections.defaultdict(set)
+    succ = collections.defaultdict(set)
+
+    for start, end in edges:
+        pred[end].add(start)
+        succ[start].add(end)
+
+    components = kosarajus(pred, succ)
+    component_pred = collections.defaultdict(set)
+    component_succ = collections.defaultdict(set)
+    for start, end in edges:
+        if components[start] != components[end]:
+            component_start = components[start]
+            component_end = components[end]
+
+            component_pred[component_end].add(component_start)
+            component_succ[component_start].add(component_end)
+
+    return set(component_succ.keys()) - set(component_pred.keys())
+
+def kosarajus(pred, succ):
+    all_nodes = set(pred.keys()) | set(succ.keys())
+
+    order = []
+    visited = set()
+    def visit(node):
+        if node not in visited:
+            visited.add(node)
+            for out_neighbor in succ[node]:
+                visit(out_neighbor)
+            order.insert(0, node)
+
+    for node in all_nodes:
+        visit(node)
+
+    components = {}
+    def assign(node, root):
+        if node not in components:
+            components[node] = root
+            for in_neighbor in pred[node]:
+                assign(in_neighbor, root)
+
+    for node in order:
+        assign(node, node)
+
+    return components
+</code></pre><h3 id="meeting-room"><a href="#meeting-room" class="headerlink" title="meeting room"></a>meeting room</h3><p>给一组meetings（每个meeting由start和end时间组成）。求出在所有输入meeting时间段内没有会议，也就是空闲的时间段。每个subarray都已经sort好。N个员工，每个员工有若干个interval表示在这段时间是忙碌的。求所有员工都不忙的intervals。</p>
+<p>循环merge，然后遍历空闲区间（ps：另一种解法很简单，参考：这题最简单的方法就是把所有区间都拆成两个点，然后排序，然后扫描，每次碰到一个点如果是左端点就把busy_employees加1，否则减1，等到每次busy_employees为0时就是一个新的区间。这样复杂度O(MlogM)，M是总共区间数。）</p>
+<pre><code>//merge and search
+vector&lt;pr&gt; merge(vector&lt;pr&gt; ft, vector&lt;pr&gt; sd) {//c++, merge
+    if(ft.empty()) return sd;
+    if(sd.empty()) return ft;
+    vector&lt;pr&gt; ans;
+    const int m = ft.size(), n = sd.size();
+    int i = 0, j = 0;
+    pr tmp(1, 1);
+    while(i &lt; m || j &lt; n) {
+        if ((i == m || tmp.second &lt; ft[i].first) &amp;&amp; (j == n || tmp.second &lt; sd[j].first)) {
+            ans.push_back(tmp);
+            if(i == m) tmp = sd[j];
+            else if(j == n) tmp = ft[i];
+            else {
+                tmp.first = min(ft[i].first, sd[j].first);
+                tmp.second = min(ft[i].second, sd[j].second);
+            }
+        }
+        if(i &lt; m &amp;&amp; ft[i].first &lt;= tmp.second)
+            tmp.second = max(tmp.second, ft[i++].second);
+        if(j &lt; n &amp;&amp; sd[j].first &lt;= tmp.second)
+            tmp.second = max(tmp.second, sd[j++].second);
+    }
+    ans.push_back(tmp);
+    return ans;
+}
+vector&lt;pr&gt; meetingRoom(vector&lt;vector&lt;pr&gt; &gt; meetings) {
+    vector&lt;pr&gt; ans, tmp;
+    const int n = meetings.size();
+    if(n == 0) return ans;
+    tmp = meetings[0];
+    for(int i = 1; i &lt; n; ++i) {
+        tmp = merge(tmp, meetings[i]);
+    }
+    if(tmp[0].first &gt; 1)
+        ans.push_back(make_pair(1, tmp[0].first));
+    for(int i = 0; i &lt; tmp.size() - 1; ++i)
+        ans.push_back(make_pair(tmp[i].second, tmp[i + 1].first));
+    return ans;
+}
+
+//break and sort: C++
+typedef pair&lt;int, int&gt; pr;
+typedef pair&lt;int, bool&gt; timePoint;
+vector&lt;pr&gt; meetingRoom(vector&lt;vector&lt;pr&gt; &gt; meetings) {
+    vector&lt;timePoint&gt; times;
+    vector&lt;pr&gt; ans;
+    if ( meetings.empty()) return ans;
+    for (auto meeting : meetings) {
+        for (auto interval : meeting) {
+            times.push_back(make_pair(interval.first, true));
+            times.push_back(make_pair(interval.second, false));
+        }
+    }
+    sort(times.begin(), times.end());
+    int startCnt = 0, preTime = times[0].first;
+    for(auto time : times) {
+        bool starting = time.second;
+        if (starting) {
+            if (startCnt == 0 &amp;&amp; time.first &gt; preTime) {
+                ans.push_back(make_pair(preTime, time.first));
+            }
+            ++startCnt;
+        } else {
+            if (startCnt == 1) preTime = max(preTime, time.first);
+            --startCnt;
+        }
+    }
+    return ans;
+}
+
+//break and sort: python    
+def find_free_time(schedules):
+moment_status = []
+
+for person_schedule in schedules:
+    for interval in person_schedule:
+        moment_status.append((interval[0], True))
+        moment_status.append((interval[1], False))
+moment_status.sort()
+free_start = moment_status[0][0]
+busy_count = 0
+available_intervals = []
+for moment, become_busy in moment_status:
+    if become_busy:
+        if busy_count == 0:
+            if moment &gt; free_start:
+                available_intervals.append((free_start, moment))
+        busy_count += 1
+    else:
+        if busy_count == 1:
+            free_start = moment
+        busy_count -= 1
+return available_intervals
+</code></pre><h3 id="preference-list"><a href="#preference-list" class="headerlink" title="preference list"></a>preference list</h3><p>每个人都有一个preference的排序，在不违反每个人的preference的情况下得到总体的preference的排序 拓扑排序解决(<a href="https://instant.1point3acres.com/thread/207601" target="_blank" rel="external">https://instant.1point3acres.com/thread/207601</a>)</p>
+<pre><code>vector&lt;int&gt; preferenceList(vector&lt;vector&lt;int&gt; &gt; &amp;preList) {
+    unordered_map&lt;int, unordered_set&lt;int&gt; &gt; mp;
+    unordered_map&lt;int, int&gt; in;
+    vector&lt;int&gt; ans;
+    for(auto lt : preList) {
+        for(int i = 1; i &lt; lt.size(); ++i)
+            mp[lt[i - 1]].insert(lt[i]);
+    }
+    for(auto m : mp)
+        for(auto s : m.second)
+            in[s]++;
+    queue&lt;int&gt; q;
+    for(int i = 0; i &lt; preList.size(); ++i)
+        if(!in.count(i)) {
+            q.push(i);
+            ans.push_back(i);
+        }
+    while(!q.empty()) {
+        int c = q.front();
+        q.pop();
+        auto next = mp[c];
+        for(auto s : next) {
+            if(--in[s] == 0) {
+                q.push(s);
+                ans.push_back(s);
+            }
+        }
+    }
+    return ans;
+}
+</code></pre><h3 id="buddy-list"><a href="#buddy-list" class="headerlink" title="buddy list"></a>buddy list</h3><p>你和你的兄弟都有一个wishlist，找出和你相似度最高的。follow up是给出一个max值，找出你的buddy的wishlist里不在你的wishlist里的最多max个城市，根据buddy和你的重合程度来排序 </p>
+<p>例如：<br>你的wishlist是 a,b,c,d </p>
+<p>buddy1 的wishlist 是 a,b,e,f, 有两个和你的一样，所以是你的buddy </p>
+<p>buddy2 的wishlist 是 a,c,d,g, 有三个和你的一样，也是你的budy </p>
+<p>问题是输出一个size最多为max的推荐城市列表。当size为10时，buddy1和buddy2的wishlist中不在你的wishlist中的城市都可以加入推荐中，因为buddy2的重合度更高，所以先输出buddy2中的，所以推荐为 g,e,f 当size为2时，推荐是g,e 或 g,f </p>
+<p>代码我只写了重合度排名，推荐的话可以按照相似度从高到低遍历，找出不在你的wishlist中的输出，输出过程中可以标记是否已经输出</p>
+<pre><code>def find(self, nums, nums2):
+    return sorted([(sum([num in set(nums) for num in nums2[i]]) / float(len(nums2[i])), i)
+                   for i in xrange(len(nums2))])
+</code></pre><h3 id="flight-ticket-list"><a href="#flight-ticket-list" class="headerlink" title="flight ticket list"></a>flight ticket list</h3><p>每一项包括departure, arrival, cost，然后给一个整数k, 表示最多允许k次中转。给定起始地点A，到达地点B, 要求输出从A到B的最小花费，最多k次中转。BFS一层一层扫。</p>
+<pre><code>def min_cost(flights, start, end, k):
+    info = collections.defaultdict(set)
+    for tour, cost in flights:
+        st, ed = tour.split(&quot;-&gt;&quot;)
+        info[st].add((ed, cost))
+
+    cur_level = {start: 0}
+    ans = 0x7FFFFFF
+    for _ in xrange(k + 1):
+        next_level = {}
+        for port, cur_cost in cur_level.iteritems():
+            for nx, cost in info[port]:
+                if nx == end:
+                    ans = min(ans, cost + cur_cost)
+                else:
+                    if nx not in next_level:
+                        next_level[nx] = cost + cur_cost
+                    else:
+                        next_level[nx] = min(next_level[nx], cost + cur_cost)
+        cur_level = next_level
+    return ans
+
+///C++: 太丑
+typedef pair&lt;string, int&gt; costInfo;
+int minCostFlight(const vector&lt;string&gt;&amp; flights, string start, string end, int k) {
+    unordered_map&lt;string, set&lt;costInfo&gt; &gt; costMap;
+    unordered_map&lt;string, int&gt; reached[2];
+    int ans = INT_MAX;
+    for (auto flight : flights) 
+        auto nx = flight.find(&quot;-&gt;&quot;, 0);
+        auto comma = flight.find(&apos;,&apos;, nx + 2);
+        string st = flight.substr(0, nx);
+        string ed = flight.substr(nx + 2, comma - nx - 2);
+        int cost = atoi(flight.substr(comma + 1).c_str());
+        costMap[st].insert(make_pair(ed, cost));
+    }
+    reached[0][start] = 0;
+    for (int i = 0, j = 0; i &lt;= k; ++i) {
+        int nxIdx = (j + 1) % 2;
+        reached[nxIdx].clear();
+        for (auto st : reached[j]) {
+            for(auto ed : costMap[st.first]) {
+                if (ed.first == end) {
+                    ans = min(ans, ed.second + st.second);
+                } else {
+                    if (!reached[nxIdx].count(ed.first))
+                        reached[nxIdx][ed.first] = ed.second + st.second;
+                    else
+                        reached[nxIdx][ed.first] = min(reached[nxIdx][ed.first], ed.second + st.second);
+                }
+            }
+        }
+        j = nxIdx;
+    }
+    return ans;
+}
+</code></pre><h3 id="URL-Shortener"><a href="#URL-Shortener" class="headerlink" title="URL Shortener"></a>URL Shortener</h3><p>（<a href="https://instant.1point3acres.com/thread/196339）" target="_blank" rel="external">https://instant.1point3acres.com/thread/196339）</a></p>
+<p>看描述好像是url里的id如果有某些位置大小写换了会导致原来的url decode有问题，需要重写encode方法，回溯改某些位的大小写判断</p>
+<pre><code>class decodeURL {
+public:
+    int decode(string url) {
+        string dUrl = &quot;kljJJ324hijkS_&quot;;
+        if (url == dUrl) return 848662;
+        return -1;
+    }
+
+    int decodeFind(string url) {
+        return helper(url, 0);
+    }
+
+private:
+    int helper(string s, int idx) {
+        if (idx == s.length())
+            return decode(s);
+        if (isalpha(s[idx])) {
+            int uid = helper(s.substr(0, idx) + char(tolower(s[idx])) + s.substr(idx + 1), idx + 1);
+            int lid = helper(s.substr(0, idx) + char(toupper(s[idx])) + s.substr(idx + 1), idx + 1);
+            if (uid != -1 || lid != -1)
+                return uid != -1 ? uid : lid;
+            return -1;
+        } else {
+            return helper(s, idx + 1);
+        }
+    }
+};
+</code></pre><h3 id="wizards"><a href="#wizards" class="headerlink" title="wizards"></a>wizards</h3><p>There are 10 <strong>wizards</strong>, 0-9, you are given a list that each entry is a list of wizards known by wizard. Define the cost between wizards and wizard as square of different of i and j. To find the min cost between 0 and 9. </p>
+<p>说白了，就是带权重的最短距离，最优解是Dijkstra algorithm。似乎面试官说，只要普通的BFS能得到解也是可以的，Dijkstra我最近正好写过，所以也写出来了。（<a href="https://instant.1point3acres.com/thread/218032）" target="_blank" rel="external">https://instant.1point3acres.com/thread/218032）</a></p>
+<pre><code>def min_distance(wizards, start=0, end=9):
+     # info = collections.defaultdict(set)
+    # for idx, wizard in enumerate(wizards):
+    #     info[idx] = set(wizard)
+    cur_level = {start: 0}
+    ans = 0x7FFFFFFF
+    for _ in xrange(10):
+        next_level = {}
+        for idx, cur_cost in cur_level.iteritems():
+            if idx &gt;= len(wizards):
+                continue
+            for nx in wizards[idx]:
+                cost = cur_cost + (nx - idx) ** 2
+                if nx == end:
+                    ans = min(ans, cost)
+                else:
+                    if nx not in next_level:
+                        next_level[nx] = cost
+                    else:
+                        next_level[nx] = min(next_level[nx], cost)
+        cur_level = next_level
+    return ans
+
+unordered_map&lt;int, int&gt; bfs(const unordered_map&lt;int, int&gt;&amp; preLevel, unordered_map&lt;int, unordered_set&lt;int&gt; &gt;&amp; next, int&amp; ans, int k, int end) {
+    unordered_map&lt;int, int&gt; nextLevel;
+    for ( auto pre : preLevel) {
+        for (auto nx : next[pre.first]) {
+            int dis = (nx - pre.first) * (nx - pre.first) + pre.second;
+            if (nx == end) {
+                ans = min(ans, dis);
+            } else if(!nextLevel.count(nx)) {
+                nextLevel[nx] = dis;
+            } else
+                nextLevel[nx] = min(nextLevel[nx], dis);
+        }
+    }
+    return k == 1 ? nextLevel : bfs(nextLevel, next, ans, k - 1, end);
+}
+
+int wizards(const vector&lt;vector&lt;int&gt; &gt; &amp;wizards, int start, int end) {
+    unordered_map&lt;int, unordered_set&lt;int&gt; &gt; next;
+    unordered_map&lt;int, int&gt; curLevel;
+    int ans = INT_MAX;
+    curLevel[start] = 0;
+    for (int i = 0; i &lt; wizards.size(); ++i) {
+        for (auto nx : wizards[i]) {
+            next[i].insert(nx);
+        }
+    }
+    bfs(curLevel, next, ans, end, end);
+    return ans;
+}
+</code></pre><h3 id="模拟倒水"><a href="#模拟倒水" class="headerlink" title="模拟倒水"></a>模拟倒水</h3><p>water land。 比如terrian是[3,2,1,2] print出来就是</p>
+<p>* </p>
+<p>* * &nbsp; *</p>
+<p>* * * *</p>
+<p>* * * *</p>
+<p>然后给你一个dumpPoint，一个waterAmount，比如dumpPoint 1, waterAmount 2，因为有重力，所以是从index 2开始加水</p>
+<p>* </p>
+<p>* * w *</p>
+<p>* * * *</p>
+<p>* * * *</p>
+<p>terrian两边是最高，模拟，先向左找到非递增的最低点，如果该点和dumpPoint一样高，往右继续找非递增的最低点，如果一样高就放到dumpPoint，不一样的话放置在非递增的最低点</p>
+<pre><code>void getWaterLevel(vector&lt;int&gt; &amp;height, int position, int count) {
+    if(height.empty()) return;
+    const int n = height.size();
+    vector&lt;int&gt; water(n, 0);
+    while(count--) {
+        int putLocation = position;
+        int left = position, right = position;
+        while(left &gt;= 1) {
+            if(height[left - 1] + water[left - 1] &gt; height[left] + water[left]) break;
+            --left;
+        }
+        if(height[left] + water[left] &lt; height[position] + water[position])
+            putLocation = left;
+        else {
+            while(right &lt; n - 1) {
+                if(height[right + 1] + water[right + 1] &gt; height[right] + water[right]) break;
+                ++right;
+            }
+            if(height[right] + water[right] &lt; height[position] + water[position])
+                putLocation = right;
+        }
+        water[putLocation]++;
+    }
+
+    int highest = 0;
+    for(int i = 0; i &lt; n; ++i)
+        if(height[i] + water[i] &gt; highest)
+            highest = height[i] + water[i];
+    for(int h = highest; h &gt;= 1; --h) {
+        for(int i = 0; i &lt; n; ++i) {
+            if(height[i] + water[i] &lt; h) cout&lt;&lt;&quot; &quot;;
+            else if(height[i] &lt; h) cout&lt;&lt;&quot;w&quot;;
+            else cout&lt;&lt;&quot;*&quot;;
+        }
+        cout&lt;&lt;endl;
+    }
+}
+</code></pre><h3 id="text-justification"><a href="#text-justification" class="headerlink" title="text justification"></a>text justification</h3><p>leetcode 68(<a href="https://leetcode.com/problems/text-justification/?tab=Description" target="_blank" rel="external">https://leetcode.com/problems/text-justification/?tab=Description</a>)</p>
+<pre><code>vector&lt;string&gt; justify(vector&lt;string&gt; &amp;words, int L) {
+    vector&lt;string&gt; ans;
+    const int n = words.size();
+    for (int i = 0; i &lt; n;) {
+        int num = 0, len = 0;
+        while (i + num &lt; n &amp;&amp; words[i + num].size() + len &lt;= L - num) {
+            len += words[i + num].size();
+            ++num;
+        }
+        string tmp = words[i];
+        for (int j = 1; j &lt; num; ++j) {
+            if (i + num &gt;= n) tmp += &quot; &quot;;
+            else tmp += string((L - len) / (num - 1) + (j  &lt;= (L - len) % (num - 1)), &apos; &apos;);
+            tmp += words[i + j];
+        }
+        tmp += string(L - tmp.size(), &apos; &apos;);
+        ans.push_back(tmp);
+        i += num;
+    }
+    return ans;
+}
+</code></pre><h3 id="string-pyramids-transition-matrix"><a href="#string-pyramids-transition-matrix" class="headerlink" title="string pyramids transition matrix"></a>string pyramids transition matrix</h3><p>给一个满二叉树的所有叶子，比如 A B C D E F， 然后给一个map，记录了左右孩子分别给了的时候，父亲节点可能的值。例如 左 A 右 B =》 AC，意味着倒数第二层第一个节点可以是A或者是C。然后要求是给几个字母，问这个树的root节点是否可能是这几个字母之一。follow up是加速，记忆化搜索（不是很好写）。</p>
+<pre><code>def generate_status(all_status, matrix):
+    if len(all_status) == 1:
+        return all_status[0]
+
+    next_all_status = []
+    for i in xrange(len(all_status) - 1):
+        cur_status = set()
+        for first in all_status[i]:
+            for second in all_status[i + 1]:
+                cur_status |= set(list(matrix[first][second]))
+        next_all_status.append(cur_status)
+
+    return generate_status(next_all_status, matrix)
+
+
+def is_legal_status(nodes, status, matrix):
+    all_status = [set(node) for node in nodes]
+    return status in generate_status(all_status, matrix)
+
+nodes = &quot;ABCD&quot;
+matrix = collections.defaultdict(lambda: collections.defaultdict(list))
+matrix[&apos;A&apos;][&apos;A&apos;] = [&apos;B&apos;]
+matrix[&apos;A&apos;][&apos;B&apos;] = [&apos;A&apos;, &apos;C&apos;]
+matrix[&apos;A&apos;][&apos;C&apos;] = [&apos;D&apos;]
+matrix[&apos;A&apos;][&apos;D&apos;] = [&apos;A&apos;]
+matrix[&apos;B&apos;][&apos;A&apos;] = [&apos;D&apos;]
+matrix[&apos;B&apos;][&apos;B&apos;] = [&apos;B&apos;, &apos;C&apos;]
+matrix[&apos;B&apos;][&apos;C&apos;] = [&apos;A&apos;]
+matrix[&apos;C&apos;][&apos;D&apos;] = [&apos;B&apos;]
+print is_legal_status(nodes, &apos;D&apos;, matrix)
+
+typedef unordered_map&lt;char, unordered_map&lt;char, unordered_set&lt;char&gt; &gt; &gt; matrixInfo;
+void generateStatus(vector&lt;unordered_set&lt;char&gt; &gt;&amp; allStatus, matrixInfo&amp; matrix) {
+    if (allStatus.size() == 1) return;
+    const int n = allStatus.size();
+    for (int i = 0; i &lt; n - 1; ++i) {
+        unordered_set&lt;char&gt; st;
+        for (auto first : allStatus[i]) {
+            for (auto second : allStatus[i + 1]) {
+                st.insert(matrix[first][second].begin(), matrix[first][second].end());
+            }
+        }
+        allStatus[i] = st;
+    }
+    allStatus.pop_back();
+    generateStatus(allStatus, matrix);
+}
+
+bool checkStatus(matrixInfo&amp; matrix, char result, const string status) {
+    vector&lt;unordered_set&lt;char&gt; &gt; allStatus;
+    for (auto c : status) {
+        unordered_set&lt;char&gt; tmp;
+        tmp.insert(c);
+        allStatus.push_back(tmp);
+    }
+    generateStatus(allStatus, matrix);
+    return allStatus[0].count(result) != 0;
+}
+
+int main() {
+    matrixInfo mi;
+    mi[&apos;A&apos;][&apos;A&apos;].insert(&apos;B&apos;);
+    mi[&apos;A&apos;][&apos;B&apos;].insert(&apos;A&apos;);
+    mi[&apos;A&apos;][&apos;B&apos;].insert(&apos;C&apos;);
+    mi[&apos;A&apos;][&apos;C&apos;].insert(&apos;D&apos;);
+    mi[&apos;A&apos;][&apos;D&apos;].insert(&apos;A&apos;);
+    mi[&apos;B&apos;][&apos;A&apos;].insert(&apos;D&apos;);
+    mi[&apos;B&apos;][&apos;B&apos;].insert(&apos;B&apos;);
+    mi[&apos;B&apos;][&apos;B&apos;].insert(&apos;C&apos;);
+    mi[&apos;B&apos;][&apos;C&apos;].insert(&apos;A&apos;);
+    mi[&apos;C&apos;][&apos;D&apos;].insert(&apos;B&apos;);
+    cout&lt;&lt;checkStatus(mi, &apos;A&apos;, &quot;ABCD&quot;)&lt;&lt;endl;
+}
+</code></pre><h3 id="sliding-game"><a href="#sliding-game" class="headerlink" title="sliding game"></a>sliding game</h3><p>九宫格，一共8个方块，从1-8，一个方块空出来，然后打乱之后通过SLIDE还原，这个题要推广到N宫格，先实现这个游戏，然后对于一个任意的BOARD，要你把他解出来</p>
+<pre><code>def dis(x, y):  # A* evaluation func
+    return (x - 2) ** 2 + (y - 2) ** 2
+
+
+def play(board):
+    m, n = len(board), len(board[0])
+    x, y = 0, 0
+    for i in xrange(m):
+        for j in xrange(n):
+            if board[i][j] == &apos;0&apos;:
+                x, y = i, j
+    board_key = &apos;&apos;.join(&apos;&apos;.join(row) for row in board)
+    heap = [(dis(x, y), x, y, board_key)]
+    visited = set()
+
+    while heap:
+        _, x, y, cur = heapq.heappop(heap)
+        if cur in visited:
+            continue
+        visited.add(cur)
+        if cur == &quot;123456780&quot;:
+            return True
+        for dx, dy in zip((1, -1, 0, 0), (0, 0, 1, -1)):
+            new_x, new_y = x + dx, y + dy
+            if 0 &lt;= new_x &lt; m and 0 &lt;= new_y &lt; n:
+                pos1, pos2 = x * m + y, new_x * m + new_y
+                new_board = list(cur)
+                new_board[pos1], new_board[pos2] = new_board[pos2], new_board[pos1]
+                heapq.heappush(heap, (dis(new_x, new_y), new_x, new_y, &apos;&apos;.join(new_board)))
+
+    return False
+
+typedef tuple&lt;int, int, int, string&gt; boardInfo;
+bool validSlidingGame(vector&lt;vector&lt;int&gt; &gt;&amp; board) {
+    const int m = board.size(), n = board[0].size();
+    auto dis = [](int x, int y, int z, int p) {return (x - z) * (x - z) + (y - p) * (y - p); };
+    int x = 0, y = 0;
+    string key = &quot;&quot;;
+    const int dir[4][2] = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+    priority_queue&lt;boardInfo&gt; pq;
+    unordered_set&lt;string&gt; visited;
+    for (int i = 0; i &lt; m; ++i) {
+        for (int j = 0; j &lt; n; ++j) {
+            if (board[i][j] == 0) {
+                x = i, y = j;
+            }
+            key += to_string(board[i][j]);
+        }
+    }
+    pq.push(make_tuple(-dis(x, y, m - 1, n - 1), x, y, key));
+    visited.insert(key);
+    while (!pq.empty()) {
+        auto tp = pq.top();
+        pq.pop();
+        string curKey;
+        tie(ignore, x, y, curKey) = tp;
+//        x = get&lt;1&gt;(tp), y = get&lt;2&gt;(tp);
+//        auto curKey = get&lt;3&gt;(tp);
+        if (curKey == &quot;123456780&quot;) return true;
+        for (int i = 0; i &lt; 4; ++i) {
+            int newX = x + dir[i][0];
+            int newY = y + dir[i][1];
+            if (newX &gt;= 0 &amp;&amp; newX &lt; m &amp;&amp; newY &gt;= 0 &amp;&amp; newY &lt; n) {
+                swap(curKey[x * m + y], curKey[newX * m + newY]);
+                if (!visited.count(curKey)) {
+                    pq.push(make_tuple(-dis(newX, newY, m - 1, n - 1), newX, newY, curKey));
+                    visited.insert(curKey);
+                }
+            }
+        }
+    }
+    return false;
+}
+</code></pre><h3 id="find-median-from-large-file-of-integers"><a href="#find-median-from-large-file-of-integers" class="headerlink" title="find median from large file of integers"></a>find median from large file of integers</h3><p><a href="https://instant.1point3acres.com/thread/159344" target="_blank" rel="external">https://instant.1point3acres.com/thread/159344</a><br>二分查找<br>思路就是：先找在INT_MIN和INT_MAX的median（0？），然后读large file of integers，找出比这个数小的个数是否有一半，然后调整二分的边界</p>
+<pre><code>double findNth(int N, int left, int right) {
+    while(left &lt;= right){
+        int guess = (left + right) / 2;
+        int x, cnt = 0, next = right;
+        while(x = readFile()) {
+            if(x &lt; guess) ++cnt;
+            else next = min(next, x);
+        }
+        if(cnt == N - 1)
+            return next;
+        if(cnt &lt; N - 1)
+            left = guess;
+        else
+            right = guess - 1;
+    }
+    return 0.0;
+}
+
+double findMedian() {
+    int len = 0;
+    while(readFile()) ++len;
+    if(len &amp; 0x1) return findNth(len &gt;&gt; 1, INT_MIN, INT_MAX);
+    int x = findNth(len &gt;&gt; 1, INT_MIN, INT_MAX);
+    int y = findNth(1 + (len &gt;&gt; 1), x, INT_MAX);
+    return double(x + y) / 2;
+}
+</code></pre><h3 id="Multiply-Strings"><a href="#Multiply-Strings" class="headerlink" title="Multiply Strings"></a>Multiply Strings</h3><p>但是string里面的数可以为负</p>
+<p>leetcode 43题，多了个负数的情况（<a href="https://leetcode.com/problems/multiply-strings/?tab=Description）" target="_blank" rel="external">https://leetcode.com/problems/multiply-strings/?tab=Description）</a></p>
+<pre><code>#include &lt;iterator&gt;
+#include &lt;algorithm&gt;
+#include &lt;vector&gt;
+
+typedef vector&lt;int&gt; bigInt;
+bigInt make_bigInt(string num) {
+    bigInt tmp;
+    transform(num.rbegin(), num.rend(), back_inserter(tmp), [](char c) { return c - &apos;0&apos;;});
+    return tmp;
+}
+string make_string(bigInt num) {
+    string tmp;
+    transform(find_if(num.rbegin(), prev(num.rend()), [](int c){ return c != 0;}), num.rend(),
+              back_inserter(tmp), [](int c) { return c + &apos;0&apos;;});
+    return tmp;
+}
+bigInt multiply(bigInt const&amp; n1, bigInt const&amp; n2) {
+    bigInt n(n1.size() + n2.size());
+    for (int i = 0; i &lt; n1.size(); ++i)
+        for (int j = 0; j &lt; n2.size(); ++j) {
+            n[i + j] += n1[i] * n2[j];
+            n[i + j + 1] += n[i + j] / 10;
+            n[i + j] %= 10;
+        }
+    return n;
+}
+
+string multiply(string num1, string num2) {
+    if(num1.empty() || num2.empty()) return &quot;0&quot;;
+    bool sign = true;
+    if (num1[0] == &apos;-&apos; || num1[0] == &apos;+&apos;) {
+        if (num1[0] == &apos;-&apos;) sign = !sign;
+        num1.sustr(1);
+    }
+    if (num2[0] == &apos;-&apos; || num2[0] == &apos;+&apos;) {
+         if (num2[0] == &apos;-&apos;) sign = !sign;
+        num2.sustr(1);
+    }
+    string ans = make_string(multiply(make_bigInt(num1), make_bigInt(num2)));
+    if (ans == &quot;0&quot;) return ans;
+    return (sign ? &quot;&quot; : &quot;-&quot;) + ans;
+}
+</code></pre><h3 id="CSV-PARSER"><a href="#CSV-PARSER" class="headerlink" title="CSV PARSER"></a>CSV PARSER</h3><p>举个例子:<br>给定一个CSV文件，格式是 “some_name|some_address|some_phone|some_job”<br>要求输出Json format “{name:some_name, address:some_addres,phone:some_phone, job:some_job}”<br>输入内容中有些特殊符号要注意处理</p>
+<pre><code>vector&lt;string&gt; parseCSV(string s) {
+    vector&lt;string&gt; ans;
+    bool inQuote = false;
+    string tmp = &quot;&quot;;
+    for(int i = 0; i &lt; s.length(); ++i) {
+        if(inQuote) {
+            if(s[i] == &apos;&quot;&apos;) {
+                if(i == s.length() - 1) {
+                    ans.push_back(tmp);
+                    return ans;
+                } else if(s[i + 1] == &apos;&quot;&apos;) {
+                    tmp += &apos;&quot;&apos;;
+                    ++i;
+                } else {
+                    ans.push_back(tmp);
+                    tmp = &quot;&quot;;
+                    inQuote = false;
+                    i++;
+                }
+            } else tmp += s[i];
+        } else {
+            if(s[i] == &apos;&quot;&apos;)
+                inQuote = true;
+            else if(s[i] == &apos;,&apos;) {
+                ans.push_back(tmp);
+                tmp = &quot;&quot;;
+            } else tmp += s[i];
+        }
+    }
+    if(!tmp.empty()) ans.push_back(tmp);
+    return ans;
+}
+
+int main() {
+    string ss[] = {&quot;John,Smith,john.smith@gmail.com,Los Angeles,1&quot;, &quot;\&quot;Alexandra \&quot;\&quot;Alex\&quot;\&quot;\&quot;,Menendez,alex.menendez@gmail.com,Miami,1&quot;};
+    for(auto s : ss) {
+        auto parsed = parseCSV(s);
+        for (int i = 0; i &lt; parsed.size() - 1; ++i)
+            cout &lt;&lt; parsed[i] &lt;&lt; &quot;|&quot;;
+        cout&lt;&lt;parsed[parsed.size() - 1]&lt;&lt;endl;
+    }
+    return 0;
+}
+</code></pre><h3 id="boggle-game"><a href="#boggle-game" class="headerlink" title="boggle game"></a>boggle game</h3><p>（<a href="https://instant.1point3acres.com/thread/201695）" target="_blank" rel="external">https://instant.1point3acres.com/thread/201695）</a></p>
+<p>这题面试来搞也太变态了，先用trie找出所有单词出现的路径map，然后dfs找出map里不重复的最大的。代码未验证~</p>
+<pre><code>struct Node {
+    bool isWord = false;
+    string word;
+    Node *next[26];
+    Node() {}
+};
+
+struct Trie {
+    Node *root;
+    Trie() {
+        root = new Node();
+    }
+
+    void buildTrie(const vector&lt;string&gt;&amp; &amp;words) {
+        for(auto word : words) {
+            Node *cur = root;
+            for(auto c : word) {
+                int idx = c - &apos;a&apos;;
+                if(!cur-&gt;next[idx])
+                    cur-&gt;next[idx] = new Node();
+                cur = cur-&gt;next[idx];
+            }
+            cur-&gt;isWord = true;
+            cur-&gt;word = word;
+        }
+    }
+};
+
+const int dir[4][2] = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+void searchBoard(const vector&lt;vector&lt;char&gt; &gt;&amp; board, vector&lt;vector&lt;bool&gt; &gt;&amp; visited, int x, int y, Node* root,
+                  vector&lt;pr&gt;&amp; path, unordered_map&lt;string, vector&lt;vector&lt;pr&gt;&gt; &gt;&amp; mp) {
+    if(x &lt; 0 || x &gt; board.size() || y &lt; 0 || y &gt; board[0].size() || visited[x][y])
+        return;
+    int idx = board[x][y] - &apos;a&apos;;
+    if(!root-&gt;next[idx]) return;
+    root = root-&gt;next[idx];
+    path.push_back(make_pair(x, y));
+    visited[x][y] = true;
+    if(root-&gt;isWord) mp[root-&gt;word].push_back(path);
+    for(int i = 0;i &lt; 4; ++i)
+        searchBoard(board, visited, x + dir[i][0], y + dir[i][1], root, path, mp);
+    visited[x][y] = false;
+    path.pop_back();
+}
+void dfs(int&amp; ans, int cur, const vector&lt;string&gt;&amp; words, vector&lt;vector&lt;bool&gt; &gt;&amp; visited, 
+         unordered_map&lt;string, vector&lt;vector&lt;pr&gt;&gt; &gt;&amp; mp, int idx) {
+    if(idx == words.size()) {
+        ans = max(ans, cur);
+        return;
+    }
+    if(ans &gt;= cur + words.size() - idx) return;
+    string word = words[idx];
+    if(mp.count(word)) {
+        for (auto pts : mp[word]) {
+            int cnt = 0;
+            for (auto pt : pts) {
+                if (visited[pt.first][pt.second]) break;
+                cnt++;
+            }
+            if (cnt == word.size()) {
+                for (auto pt : pts) visited[pt.first][pt.second] = true;
+                dfs(ans, cur + 1, words, visited, mp, idx + 1);
+                for (auto pt : pts) visited[pt.first][pt.second] = false;
+            }
+        }
+    }
+    dfs(ans, cur, words, visited, mp, idx + 1);
+}
+
+int findWords(const vector&lt;vector&lt;char&gt; &gt;&amp; board, const vector&lt;string&gt;&amp; words) {
+    if(board.empty() || words.empty()) return 0;
+    Trie trie;
+    trie.buildTrie(words);
+    const auto m = board.size(), n = board[0].size();
+    unordered_map&lt;string, vector&lt;vector&lt;pr&gt;&gt; &gt; mp;
+    for(int i = 0; i &lt; m; ++i)
+        for(int j = 0; j &lt; n; ++j) {
+            vector&lt;vector&lt;bool&gt; &gt; visited(m, vector&lt;bool&gt;(n, false));
+            vector&lt;pr&gt; path;
+            searchBoard(board, visited, i, j, trie.root, path, mp);
+        }
+    vector&lt;vector&lt;bool&gt; &gt; visited(m, vector&lt;bool&gt;(n, false));
+    int ans = 0;
+    dfs(ans, 0, words, visited, mp, 0);
+    return ans;
+}
+</code></pre>
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>    
+     
+     
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+              <strong>本文作者：</strong>August
+          </li>
+          <li class="post-copyright-link">
+            <strong>本文链接：</strong>
+            <a href="/2017/06/01/airbnb面试题汇总/" title="airbnb面试题汇总">2017/06/01/airbnb面试题汇总/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明： </strong>
+            本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by-nc-sa/3.0/cn/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0 CN</a> 许可协议。转载请注明出处！
+          </li>
+        </ul>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/算法/" rel="tag"># 算法</a>
+          
+            <a href="/tags/面试/" rel="tag"># 面试</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/05/17/Docker-Ubuntu-jpeg-turbo编译opencv3/" rel="next" title="Docker+Ubuntu+jpeg-turbo编译opencv3">
+                <i class="fa fa-chevron-left"></i> Docker+Ubuntu+jpeg-turbo编译opencv3
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2017/06/01/airbnb面试题汇总/"
+           data-title="airbnb面试题汇总" data-url="http:zhangpin.info/2017/06/01/airbnb面试题汇总/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="August" />
+          <p class="site-author-name" itemprop="name">August</p>
+          <p class="site-description motion-element" itemprop="description">act like a human</p>
+        </div>
+        <nav class="site-state motion-element">
+        
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">4</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">20</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/yezizp2012" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/1625067810" target="_blank" title="Weibo">
+                  
+                    <i class="fa fa-fw fa-weibo"></i>
+                  
+                  Weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://www.zhihu.com/people/suo-chang-ni-hao-67" target="_blank" title="Zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  Zhihu
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://www.facebook.com/yezizp" target="_blank" title="Facebook">
+                  
+                    <i class="fa fa-fw fa-facebook"></i>
+                  
+                  Facebook
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+          <div class="cc-license motion-element" itemprop="license">
+            <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" target="_blank">
+              <img src="/images/cc-by-nc-sa.svg" alt="Creative Commons" />
+            </a>
+          </div>
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-block">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              Links
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://blog.csdn.net/yezizp" title="yezizp的专栏" target="_blank">yezizp的专栏</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Palindrome-Pairs"><span class="nav-number">1.</span> <span class="nav-text">Palindrome Pairs</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Round-numbers"><span class="nav-number">2.</span> <span class="nav-text">Round numbers</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2D-itertaor-remove"><span class="nav-number">3.</span> <span class="nav-text">2D itertaor + remove()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ip2cidr"><span class="nav-number">4.</span> <span class="nav-text">ip2cidr</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Display-Page-list"><span class="nav-number">5.</span> <span class="nav-text">Display Page list</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#menu-order"><span class="nav-number">6.</span> <span class="nav-text">menu order</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Hilbert-Curve"><span class="nav-number">7.</span> <span class="nav-text">Hilbert Curve</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Alien-Dictionary"><span class="nav-number">8.</span> <span class="nav-text">Alien Dictionary</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#有向图-求最少的点可以遍历所有点"><span class="nav-number">9.</span> <span class="nav-text">有向图 求最少的点可以遍历所有点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#meeting-room"><span class="nav-number">10.</span> <span class="nav-text">meeting room</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#preference-list"><span class="nav-number">11.</span> <span class="nav-text">preference list</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#buddy-list"><span class="nav-number">12.</span> <span class="nav-text">buddy list</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#flight-ticket-list"><span class="nav-number">13.</span> <span class="nav-text">flight ticket list</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#URL-Shortener"><span class="nav-number">14.</span> <span class="nav-text">URL Shortener</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#wizards"><span class="nav-number">15.</span> <span class="nav-text">wizards</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#模拟倒水"><span class="nav-number">16.</span> <span class="nav-text">模拟倒水</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#text-justification"><span class="nav-number">17.</span> <span class="nav-text">text justification</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#string-pyramids-transition-matrix"><span class="nav-number">18.</span> <span class="nav-text">string pyramids transition matrix</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#sliding-game"><span class="nav-number">19.</span> <span class="nav-text">sliding game</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#find-median-from-large-file-of-integers"><span class="nav-number">20.</span> <span class="nav-text">find median from large file of integers</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Multiply-Strings"><span class="nav-number">21.</span> <span class="nav-text">Multiply Strings</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CSV-PARSER"><span class="nav-number">22.</span> <span class="nav-text">CSV PARSER</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#boggle-game"><span class="nav-number">23.</span> <span class="nav-text">boggle game</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">August</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+<div class="busuanzi-count">
+
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv"><i class="fa fa-user"></i><span class="busuanzi-value" id="busuanzi_value_site_uv"></span></span>
+  
+
+  
+    <span class="site-pv"><i class="fa fa-eye"></i><span class="busuanzi-value" id="busuanzi_value_site_pv"></span></span>
+  
+  
+</div>
+
+
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"yezizp"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementById('footer')
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+
+</body>
+</html>
