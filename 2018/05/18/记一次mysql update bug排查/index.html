@@ -72,7 +72,7 @@
 <link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="August, Blog, zhangpin, 张品" />
+  <meta name="keywords" content="mysql," />
 
 
 
@@ -90,15 +90,25 @@
 
 
 
-<meta name="description" content="act like a human">
-<meta property="og:type" content="website">
-<meta property="og:title" content="August's Box">
-<meta property="og:url" content="https://yezizp2012.github.io/tags/对象/index.html">
+<meta name="description" content="线上日志查问题的时候，发现有个任务被触发了多次，不太正常。任务的触发条件是操作某一个对象时，会查询db里面记录的和对象相关的前一次触发时间戳和计数，当计数达到某个值或者上一次触发时间距离现在超过某个时间段时触发。流程类似于：
+
+select cnt, last_time
+if (cnt &amp;gt; 100 and (now() - last_time) &amp;gt; 24*3600) do_task()">
+<meta property="og:type" content="article">
+<meta property="og:title" content="记一次mysql update bug排查">
+<meta property="og:url" content="https://yezizp2012.github.io/2018/05/18/记一次mysql update bug排查/index.html">
 <meta property="og:site_name" content="August's Box">
-<meta property="og:description" content="act like a human">
+<meta property="og:description" content="线上日志查问题的时候，发现有个任务被触发了多次，不太正常。任务的触发条件是操作某一个对象时，会查询db里面记录的和对象相关的前一次触发时间戳和计数，当计数达到某个值或者上一次触发时间距离现在超过某个时间段时触发。流程类似于：
+
+select cnt, last_time
+if (cnt &amp;gt; 100 and (now() - last_time) &amp;gt; 24*3600) do_task()">
+<meta property="og:updated_time" content="2018-05-18T08:07:50.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="August's Box">
-<meta name="twitter:description" content="act like a human">
+<meta name="twitter:title" content="记一次mysql update bug排查">
+<meta name="twitter:description" content="线上日志查问题的时候，发现有个任务被触发了多次，不太正常。任务的触发条件是操作某一个对象时，会查询db里面记录的和对象相关的前一次触发时间戳和计数，当计数达到某个值或者上一次触发时间距离现在超过某个时间段时触发。流程类似于：
+
+select cnt, last_time
+if (cnt &amp;gt; 100 and (now() - last_time) &amp;gt; 24*3600) do_task()">
 
 
 
@@ -126,13 +136,13 @@
 
 
 
-  <link rel="canonical" href="https://yezizp2012.github.io/tags/对象/"/>
+  <link rel="canonical" href="https://yezizp2012.github.io/2018/05/18/记一次mysql update bug排查/"/>
 
 
 
 
 
-  <title> 标签: 对象 | August's Box </title>
+  <title> 记一次mysql update bug排查 | August's Box </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -163,7 +173,7 @@
     
   
 
-  <div class="container one-collumn sidebar-position-left  ">
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
     <div class="headband"></div>
 
     <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
@@ -255,46 +265,250 @@
           <div id="content" class="content">
             
 
-  <div id="posts" class="posts-collapse">
-    <div class="collection-title">
-      <h2 >
-        对象
-        <small>标签</small>
-      </h2>
-    </div>
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+  <link itemprop="mainEntityOfPage" href="https://yezizp2012.github.io/2018/05/18/记一次mysql update bug排查/">
+
+  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="August">
+    <meta itemprop="description" content="">
+    <meta itemprop="image" content="/images/avatar.gif">
+  </span>
+
+  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <meta itemprop="name" content="August's Box">
+    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+      <img style="display:none;" itemprop="url image" alt="August's Box" src="">
+    </span>
+  </span>
 
     
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                记一次mysql update bug排查
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-05-18T15:07:08+08:00">
+                2018-05-18
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/工作琐记/" itemprop="url" rel="index">
+                    <span itemprop="name">工作琐记</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+            <!--noindex-->
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/05/18/记一次mysql update bug排查/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count hc-comment-count" data-xid="2018/05/18/记一次mysql update bug排查/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+              <!--/noindex-->
+            
+          
+
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
       
 
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
+      
+        <p>线上日志查问题的时候，发现有个任务被触发了多次，不太正常。任务的触发条件是操作某一个对象时，会查询db里面记录的和对象相关的前一次触发时间戳和计数，当计数达到某个值或者上一次触发时间距离现在超过某个时间段时触发。流程类似于：</p>
+<ol>
+<li>select cnt, last_time</li>
+<li>if (cnt &gt; 100 and (now() - last_time) &gt; 24*3600) do_task();</li>
+<li>update cnt=0, last_time=now()</li>
+</ol>
+<p>在实现3的时候，sql语句写成了</p>
+<pre><code>tx.Exec(&quot;UPDATE `table_1` set cnt=0 and last_time=? where id=?&quot;, now, id)
+</code></pre><p>语句能够成功执行，运行后<strong>cnt</strong>确实被修改为了0，但<strong>last_time</strong>并没有被修改。当时一度以为是mysql timestamp(6)类型和golang里面的time.Time类型不兼容，多次尝试修改后都未解决。后又在mysql中尝试以下几个语句时，得到的结果很奇怪：</p>
+<pre><code>update table_1 set cnt=0 and last_time=NOW(6) where id=1;
+//last_time仍然没有被修改
 
-      <h1 class="post-title">
+update table_1 set last_time=NOW(6) and cnt=0 where id=1;
+//last_time被修改为&quot;0000-00-00 00:00:00.000000&quot;，cnt未修改
+
+update table_1 set cnt=1 and last_time=NOW(6) where id=1;
+//cnt修改为1，last_time未修改
+
+update table_1 set cnt=10 and last_time=NOW(6) where id=1;
+//cnt修改为1，last_time未修改
+</code></pre><p>后来发现，update set的field应该是”<strong>,</strong>“分割而不是<strong>and</strong>（太蠢…）。update的语法如下：</p>
+<pre><code>UPDATE [LOW_PRIORITY] [IGNORE] tbl_name
+
+SET col_name1=expr1 [, col_name2=expr2 ...]
+
+[WHERE where_definition]
+
+[ORDER BY ...]
+
+[LIMIT row_count]
+</code></pre><p>奇怪的是mysql的语法解析居然没有报错，对比了下上面的结果恍然大悟，原来mysql语法解析时把<strong>set cnt=0 and last_time=NOW(6)</strong>解析成了<strong>set cnt=(0 and last_time=NOW(6))</strong>，后面的部分被解析成了一个bool值，所以cnt才可以成功更新为0且语法解析没有报错。同理，<strong>last_time=NOW(6) and cnt=0</strong>更新last_time为”0000-00-00 00:00:00.000000”，<strong>cnt=10 and last_time=NOW(6)</strong>更新cnt为1。</p>
+<p>在mysql中验证如下：</p>
+<pre><code>select 1 and 0;
+// 返回0
+</code></pre><p>进一步验证，当update set第一个field为varchar类型时，同样的语句mysql会报类型错误。</p>
+<pre><code>update table_1 set name=&quot;xxxxx&quot; and cnt=1 where id=1;
+// 报错：Truncated incorrect DOUBLE value: &apos;xxxxx&apos;
+</code></pre>
+      
+    </div>
+
+    <div>
+      
         
-            <a class="post-title-link" href="/2017/02/06/Redis设计与实现笔记-章8-对象/" itemprop="url">
-              
-                <span itemprop="name">Redis设计与实现笔记-章8.对象</span>
-              
-            </a>
+
+      
+    </div>
+
+    <div>
+      
         
-      </h1>
 
-      <div class="post-meta">
-        <time class="post-time" itemprop="dateCreated"
-              datetime="2017-02-06T11:50:50+08:00"
-              content="2017-02-06" >
-          02-06
-        </time>
-      </div>
+      
+    </div>
 
-    </header>
+    <div>
+      
+        
+
+      
+    </div>
+
+    <hr>
+    <div> 
+     
+     
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+              <strong>本文作者：</strong>August
+          </li>
+          <li class="post-copyright-link">
+            <strong>本文链接：</strong>
+            <a href="/2018/05/18/记一次mysql update bug排查/" title="记一次mysql update bug排查">2018/05/18/记一次mysql update bug排查/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明： </strong>
+            本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by-nc-sa/3.0/cn/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0 CN</a> 许可协议。转载请注明出处！
+          </li>
+        </ul>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/mysql/" rel="tag"># mysql</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/06/01/airbnb面试题汇总/" rel="next" title="airbnb面试题汇总">
+                <i class="fa fa-chevron-left"></i> airbnb面试题汇总
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
   </article>
 
 
-    
-  </div>
 
-  
+    <div class="post-spread">
+      
+    </div>
+  </div>
 
 
           </div>
@@ -302,6 +516,12 @@
 
 
           
+  <div class="comments" id="comments">
+    
+      <div id="hypercomments_widget"></div>
+    
+  </div>
+
 
         </div>
         
@@ -557,6 +777,10 @@
   
 
   
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
 
   
 
@@ -581,6 +805,8 @@
 
 		_hcwp.push({widget:"Bloggerstream", widget_id: 91891, selector:".hc-comment-count", label: "{\%COUNT%\}" });
 
+		
+		_hcwp.push({widget:"Stream", widget_id: 91891, xid: "2018/05/18/记一次mysql update bug排查/"});
 		
 
 		(function() {

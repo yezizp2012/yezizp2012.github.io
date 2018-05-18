@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="https://yezizp2012.github.io/"/>
-  <updated>2017-06-01T07:23:57.000Z</updated>
+  <updated>2018-05-18T08:07:50.000Z</updated>
   <id>https://yezizp2012.github.io/</id>
   
   <author>
@@ -14,6 +14,67 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>记一次mysql update bug排查</title>
+    <link href="https://yezizp2012.github.io/2018/05/18/%E8%AE%B0%E4%B8%80%E6%AC%A1mysql%20update%20bug%E6%8E%92%E6%9F%A5/"/>
+    <id>https://yezizp2012.github.io/2018/05/18/记一次mysql update bug排查/</id>
+    <published>2018-05-18T07:07:08.000Z</published>
+    <updated>2018-05-18T08:07:50.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>线上日志查问题的时候，发现有个任务被触发了多次，不太正常。任务的触发条件是操作某一个对象时，会查询db里面记录的和对象相关的前一次触发时间戳和计数，当计数达到某个值或者上一次触发时间距离现在超过某个时间段时触发。流程类似于：</p>
+<ol>
+<li>select cnt, last_time</li>
+<li>if (cnt &gt; 100 and (now() - last_time) &gt; 24*3600) do_task();</li>
+<li>update cnt=0, last_time=now()</li>
+</ol>
+<p>在实现3的时候，sql语句写成了</p>
+<pre><code>tx.Exec(&quot;UPDATE `table_1` set cnt=0 and last_time=? where id=?&quot;, now, id)
+</code></pre><p>语句能够成功执行，运行后<strong>cnt</strong>确实被修改为了0，但<strong>last_time</strong>并没有被修改。当时一度以为是mysql timestamp(6)类型和golang里面的time.Time类型不兼容，多次尝试修改后都未解决。后又在mysql中尝试以下几个语句时，得到的结果很奇怪：</p>
+<pre><code>update table_1 set cnt=0 and last_time=NOW(6) where id=1;
+//last_time仍然没有被修改
+
+update table_1 set last_time=NOW(6) and cnt=0 where id=1;
+//last_time被修改为&quot;0000-00-00 00:00:00.000000&quot;，cnt未修改
+
+update table_1 set cnt=1 and last_time=NOW(6) where id=1;
+//cnt修改为1，last_time未修改
+
+update table_1 set cnt=10 and last_time=NOW(6) where id=1;
+//cnt修改为1，last_time未修改
+</code></pre><p>后来发现，update set的field应该是”<strong>,</strong>“分割而不是<strong>and</strong>（太蠢…）。update的语法如下：</p>
+<pre><code>UPDATE [LOW_PRIORITY] [IGNORE] tbl_name
+
+SET col_name1=expr1 [, col_name2=expr2 ...]
+
+[WHERE where_definition]
+
+[ORDER BY ...]
+
+[LIMIT row_count]
+</code></pre><p>奇怪的是mysql的语法解析居然没有报错，对比了下上面的结果恍然大悟，原来mysql语法解析时把<strong>set cnt=0 and last_time=NOW(6)</strong>解析成了<strong>set cnt=(0 and last_time=NOW(6))</strong>，后面的部分被解析成了一个bool值，所以cnt才可以成功更新为0且语法解析没有报错。同理，<strong>last_time=NOW(6) and cnt=0</strong>更新last_time为”0000-00-00 00:00:00.000000”，<strong>cnt=10 and last_time=NOW(6)</strong>更新cnt为1。</p>
+<p>在mysql中验证如下：</p>
+<pre><code>select 1 and 0;
+// 返回0
+</code></pre><p>进一步验证，当update set第一个field为varchar类型时，同样的语句mysql会报类型错误。</p>
+<pre><code>update table_1 set name=&quot;xxxxx&quot; and cnt=1 where id=1;
+// 报错：Truncated incorrect DOUBLE value: &apos;xxxxx&apos;
+</code></pre>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;线上日志查问题的时候，发现有个任务被触发了多次，不太正常。任务的触发条件是操作某一个对象时，会查询db里面记录的和对象相关的前一次触发时间戳和计数，当计数达到某个值或者上一次触发时间距离现在超过某个时间段时触发。流程类似于：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;select cnt,
+    
+    </summary>
+    
+      <category term="工作琐记" scheme="https://yezizp2012.github.io/categories/%E5%B7%A5%E4%BD%9C%E7%90%90%E8%AE%B0/"/>
+    
+    
+      <category term="mysql" scheme="https://yezizp2012.github.io/tags/mysql/"/>
+    
+  </entry>
   
   <entry>
     <title>airbnb面试题汇总</title>
