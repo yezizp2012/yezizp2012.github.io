@@ -90,25 +90,16 @@
 
 
 
-<meta name="description" content="线上日志查问题的时候，发现有个任务被触发了多次，不太正常。任务的触发条件是操作某一个对象时，会查询db里面记录的和对象相关的前一次触发时间戳和计数，当计数达到某个值或者上一次触发时间距离现在超过某个时间段时触发。流程类似于：
-
-select cnt, last_time
-if (cnt &amp;gt; 100 and (now() - last_time) &amp;gt; 24*3600) do_task()">
+<meta name="description" content="线上日志查问题的时候，发现有个任务被触发了多次，不太正常。任务的触发条件是操作某一个对象时，会查询db里面记录的和对象相关的前一次触发时间戳和计数，当计数达到某个值或者上一次触发时间距离现在超过某个时间段时触发。流程类似于：">
 <meta property="og:type" content="article">
 <meta property="og:title" content="记一次mysql update bug排查">
 <meta property="og:url" content="https://yezizp2012.github.io/2018/05/18/记一次mysql update bug排查/index.html">
 <meta property="og:site_name" content="August's Box">
-<meta property="og:description" content="线上日志查问题的时候，发现有个任务被触发了多次，不太正常。任务的触发条件是操作某一个对象时，会查询db里面记录的和对象相关的前一次触发时间戳和计数，当计数达到某个值或者上一次触发时间距离现在超过某个时间段时触发。流程类似于：
-
-select cnt, last_time
-if (cnt &amp;gt; 100 and (now() - last_time) &amp;gt; 24*3600) do_task()">
-<meta property="og:updated_time" content="2018-05-18T08:07:50.000Z">
+<meta property="og:description" content="线上日志查问题的时候，发现有个任务被触发了多次，不太正常。任务的触发条件是操作某一个对象时，会查询db里面记录的和对象相关的前一次触发时间戳和计数，当计数达到某个值或者上一次触发时间距离现在超过某个时间段时触发。流程类似于：">
+<meta property="og:updated_time" content="2018-05-18T08:09:30.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="记一次mysql update bug排查">
-<meta name="twitter:description" content="线上日志查问题的时候，发现有个任务被触发了多次，不太正常。任务的触发条件是操作某一个对象时，会查询db里面记录的和对象相关的前一次触发时间戳和计数，当计数达到某个值或者上一次触发时间距离现在超过某个时间段时触发。流程类似于：
-
-select cnt, last_time
-if (cnt &amp;gt; 100 and (now() - last_time) &amp;gt; 24*3600) do_task()">
+<meta name="twitter:description" content="线上日志查问题的时候，发现有个任务被触发了多次，不太正常。任务的触发条件是操作某一个对象时，会查询db里面记录的和对象相关的前一次触发时间戳和计数，当计数达到某个值或者上一次触发时间距离现在超过某个时间段时触发。流程类似于：">
 
 
 
@@ -389,7 +380,7 @@ if (cnt &amp;gt; 100 and (now() - last_time) &amp;gt; 24*3600) do_task()">
       
 
       
-        <p>线上日志查问题的时候，发现有个任务被触发了多次，不太正常。任务的触发条件是操作某一个对象时，会查询db里面记录的和对象相关的前一次触发时间戳和计数，当计数达到某个值或者上一次触发时间距离现在超过某个时间段时触发。流程类似于：</p>
+        <p>线上日志查问题的时候，发现有个任务被触发了多次，不太正常。任务的触发条件是操作某一个对象时，会查询db里面记录的和对象相关的前一次触发时间戳和计数，当计数达到某个值或者上一次触发时间距离现在超过某个时间段时触发。流程类似于：<br><a id="more"></a></p>
 <ol>
 <li>select cnt, last_time</li>
 <li>if (cnt &gt; 100 and (now() - last_time) &gt; 24*3600) do_task();</li>
