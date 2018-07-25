@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="https://yezizp2012.github.io/"/>
-  <updated>2018-05-18T08:09:30.000Z</updated>
+  <updated>2018-05-18T08:10:17.000Z</updated>
   <id>https://yezizp2012.github.io/</id>
   
   <author>
@@ -20,7 +20,7 @@
     <link href="https://yezizp2012.github.io/2018/05/18/%E8%AE%B0%E4%B8%80%E6%AC%A1mysql%20update%20bug%E6%8E%92%E6%9F%A5/"/>
     <id>https://yezizp2012.github.io/2018/05/18/记一次mysql update bug排查/</id>
     <published>2018-05-18T07:07:08.000Z</published>
-    <updated>2018-05-18T08:09:30.000Z</updated>
+    <updated>2018-05-18T08:10:17.000Z</updated>
     
     <content type="html"><![CDATA[<p>线上日志查问题的时候，发现有个任务被触发了多次，不太正常。任务的触发条件是操作某一个对象时，会查询db里面记录的和对象相关的前一次触发时间戳和计数，当计数达到某个值或者上一次触发时间距离现在超过某个时间段时触发。流程类似于：<br><a id="more"></a></p>
 <ol>
